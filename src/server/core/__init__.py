@@ -14,6 +14,12 @@ db = SQLAlchemy(app)
 
 from core import endpoints
 from core import manager
+from core import models
 
-mc = manager.MissionControl()
+def start():
+    sc = manager.StatusControl(db)
+
+    #mc = manager.MissionControl(db)
+
+
 
