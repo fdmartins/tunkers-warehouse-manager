@@ -1,10 +1,10 @@
 import webbrowser
 import socket
-import tkinter as tk
-from tkinter import messagebox
+#import tkinter as tk
+#from tkinter import messagebox
 from threading import Thread
 import logging
-
+import time
 import core
 
 
@@ -97,16 +97,18 @@ if __name__ == '__main__':
 
     core.start()
 
-    
-    # Open browser automatically
-    logging.info(f"Abrindo Browser Automaticamente...")
-    #open_browser(ip, port)
-    logging.info(f"Browser Aberto!")
-    
-    # Create the tkinter window
-    logging.info(f"Criando Janela Local do Sistema...")
-    create_window(ip, port)
+    while True:
+        time.sleep(1)
+    if False:
+        # Open browser automatically
+        logging.info(f"Abrindo Browser Automaticamente...")
+        #open_browser(ip, port)
+        logging.info(f"Browser Aberto!")
+        
+        # Create the tkinter window
+        logging.info(f"Criando Janela Local do Sistema...")
+        create_window(ip, port)
 
-    # janela prende aplicacao até o encerramento.
-    
-    logging.info(">>>>>> SISTEMA ENCERRADO <<<<<<<")
+        # janela prende aplicacao até o encerramento.
+        
+        logging.info(">>>>>> SISTEMA ENCERRADO <<<<<<<")

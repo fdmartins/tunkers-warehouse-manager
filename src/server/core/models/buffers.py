@@ -11,6 +11,8 @@ class Buffer:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
+        self.logger.info(f"Iniciando Buffers")
+
         # Cria um objeto ConfigParser
         config = configparser.ConfigParser()
 
@@ -25,6 +27,7 @@ class Buffer:
             # Converte a seção em um dicionário
             section_dict = {}
             section_dict['titulo_area'] = config.get(section, 'titulo_area')
+            section_dict['type'] = config.get(section, 'tipo')
             
             ruas = []
             for key in config[section]:
@@ -96,6 +99,7 @@ class Buffer:
             buffer_view.append({
                 "row_id": row["id"],
                 "sku": sku, 
+                "type": buffer["type"] , 
                 "positions": positions                
             })
 

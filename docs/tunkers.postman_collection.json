@@ -1,0 +1,419 @@
+{
+	"info": {
+		"_postman_id": "4f0ff40a-fc39-41f5-aa17-6c702aeead81",
+		"name": "tunkers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://192.168.1.181:8080/v1/users/create",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer123",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\":\"fdmartins2\",\n    \"password\":\"123123\",\n    \"roles\": \"ADMIN\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/users/create",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"users",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/users/login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\":\"fdmartins2\",\n    \"password\":\"123123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/users/login",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/users/list",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 75b9124f148fbdbd2aa3196de60628ea",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/users/list",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"users",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/users/logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"token\": \"b6ef3ac328eb8b8970fa89210454700d\"\n\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/users/logout",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"users",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/users/update/password",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 75b9124f148fbdbd2aa3196de60628ea",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\":1,\n    \"new_password\": \"234234\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/users/update/password",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"users",
+						"update",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/button/call",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id_button\": 1,\n    \"message_type\": \"LIFE\", \n    \"sequence\":13,\n    \"material_type\": \"BOBINA\", \n    \"action_type\": \"ABASTECE\", \n    \"situation\": \"COMPLETO\", \n    \"id_machine\": 1, \n    \"gauge\": \"0.8\", \n    \"product\": \"0.8 BE14\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/button/call",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"button",
+						"call"
+					]
+				},
+				"description": "chamada botoeira"
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/button/call/list",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/button/call/list",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"button",
+						"call",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/button/comm",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/button/comm",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"button",
+						"comm"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/alerts/last",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/history/alerts",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"history",
+						"alerts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/history",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/history/list",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"history",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/buffers/2",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/buffers/2",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"buffers",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/buffers/2/update/sku/2/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sku\": \"SKU11111\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/buffers/2/update/sku/2/",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"buffers",
+						"2",
+						"update",
+						"sku",
+						"2",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.1.181:8080/v1/buffers/2/update/position/1/2",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 123",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"occupied\": false\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.1.181:8080/v1/buffers/2/update/position/1/23",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"1",
+						"181"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"buffers",
+						"2",
+						"update",
+						"position",
+						"1",
+						"23"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

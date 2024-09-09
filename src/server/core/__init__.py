@@ -12,14 +12,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-from core import endpoints
-from core import manager
-from core import models
-
 def start():
+    from core import endpoints
+    from core import manager
+    from core import models
+
     sc = manager.StatusControl(db)
 
-    #mc = manager.MissionControl(db)
+    mc = manager.MissionControl(db)
 
 
 
