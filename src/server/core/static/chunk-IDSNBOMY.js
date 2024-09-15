@@ -1,0 +1,1 @@
+import{Z as n,Za as o,_a as s,gb as f,kb as a}from"./chunk-MGJER5G2.js";import"./chunk-2VMXMS7J.js";var r=class t{static \u0275fac=function(e){return new(e||t)};static \u0275cmp=n({type:t,selectors:[["app-buffers"]],standalone:!0,features:[a],decls:2,vars:0,template:function(e,p){e&1&&(o(0,"p"),f(1,"buffers works!"),s())}})};export{r as BuffersComponent};

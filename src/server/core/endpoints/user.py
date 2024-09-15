@@ -5,6 +5,7 @@ import hashlib
 import datetime
 from .authorization import authorized 
 import logging
+from sqlalchemy import desc
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +14,10 @@ def generate_md5_token(username):
 
 @app.route('/v1/users')
 def test_users():
-    return jsonify({'message': 'users OK'}), 200
+    return jsonify({'status':True, 'message': 'users OK'}), 200
 
 
-@app.route('/v1/users/login', methods=['POST'])
+@app.route('/v1/users/login', methods=['POST', 'OPTIONS'])
 def login():
     data = request.get_json()
 
@@ -30,9 +31,9 @@ def login():
 
         History.info("Sistema", f"Operador Logado: {user.username}" )
 
-        return jsonify({'message': 'Logado com sucesso', 'token': token, 'role': user.roles}), 200
+        return jsonify({'status':True, 'message': 'Logado com sucesso', 'token': token, 'role': user.roles}), 200
     
-    return jsonify({'message': 'Credenciais Inválidas'}), 200
+    return jsonify({'status':False, 'message': 'Credenciais Inválidas'}), 200
 
 @app.route('/v1/users/logout', methods=['POST'])
 def logout():
@@ -44,15 +45,15 @@ def logout():
 
         History.info("Sistema", f"Operador Saiu: {user.username}")
 
-        return jsonify({'message': 'Deslogado com Sucesso'}), 200
+        return jsonify({'status':True,'message': 'Deslogado com Sucesso'}), 200
     
-    return jsonify({'message': 'Token Invalido'}), 401
+    return jsonify({'status':False, 'message': 'Token Invalido'}), 200
 
 
 @app.route('/v1/users/list', methods=['GET'])
 @authorized
 def get_all_users(logged_user):
-    users = User.query.all()
+    users = User.query.order_by(desc(User.id)).all()
     user_list = []
     
     if logged_user.roles=="ADMIN":
@@ -60,7 +61,8 @@ def get_all_users(logged_user):
         for user in users:
             user_data = {
                 'id': user.id,
-                'username': user.username
+                'username': user.username,
+                'role': user.roles
             }
             user_list.append(user_data)
     else:
@@ -69,7 +71,8 @@ def get_all_users(logged_user):
                 # se usuario nao admin, lista apenas ele proprio.
                 user_data = {
                     'id': user.id,
-                    'username': user.username
+                    'username': user.username,
+                    'role': user.roles
                 }
                 user_list.append(user_data)
 

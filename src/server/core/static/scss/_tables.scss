@@ -1,0 +1,15 @@
+
+.table {
+  > thead {
+    th {
+      border-color: $body-color;
+      background-color: $body-color;
+      color: #FFF;
+    }
+  }
+
+}
+
+.table-empty {
+  text-align: center;
+}

@@ -10,7 +10,7 @@ class Navithor:
         self.ip = ip
         self.port = port
 
-        self.logger.info("Iniciado Protocolo API Navithor IP {ip} porta {port}")
+        self.logger.info(f"Iniciado Protocolo API Navithor IP {ip} porta {port}")
 
     def call_api(self, endpoint, payload):
         headers = {
@@ -27,7 +27,7 @@ class Navithor:
             return {"error": f"Erro na requisição: {response.status_code}"}
         
 
-    def send_mission(self, id, missions):
+    def send_mission(self, id_local, missions):
         self.logger.info("Enviando Missão ao Navithor...")
         
         endpoint = "/api/missioncreate"
@@ -72,11 +72,10 @@ class Navithor:
                 }
             ]
 
-        self.logger.info(steps)
-        exit()
+        
 
         payload = {
-            "ExternalId": f"Tunkers_{id}",
+            "ExternalId": id_local,
             "Name": "Gerenciador Tunkers",
             "Options": {
                 "Priority": 5
@@ -84,22 +83,25 @@ class Navithor:
             "Steps": steps
         }
 
+        self.logger.info(payload)
+        #exit()
+
         return self.call_api(endpoint, payload)
 
  
     def get_mission_status(self, external_id=None, internal_id=None):
-        self.logger.debug("Verificando Status das Missões...")
+        #self.logger.debug("Verificando Status das Missões...")
 
         endpoint = "/api/MissionStatusRequest"
         
         # Define o payload com base no ID disponível
         payload = {}
-        if external_id:
-            payload["ExternalId"] = external_id
-        elif internal_id:
-            payload["InternalId"] = internal_id
-        else:
-            raise ValueError("Você deve fornecer um ExternalId ou um InternalId.")
+        #if external_id:
+        payload["ExternalId"] = external_id
+        #elif internal_id:
+        payload["InternalId"] = internal_id
+        #else:
+        #    raise ValueError("Você deve fornecer um ExternalId ou um InternalId.")
 
         return self.call_api(endpoint, payload)
 

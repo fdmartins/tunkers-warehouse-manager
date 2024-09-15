@@ -5,12 +5,13 @@ import hashlib
 import datetime
 import logging
 import json
+from sqlalchemy import desc
 
 logger = logging.getLogger(__name__)
 
 @app.route('/v1/history/alerts', methods=['POST'])
 def last_alerts():
-    alerts = History.query.filter_by(level='ERRO').all()
+    alerts = History.query.filter_by(level='ERRO').order_by(desc(History.id)).all()
     output = []
     for a in alerts:
         output.append({
@@ -30,7 +31,7 @@ def last_alerts():
 
 @app.route('/v1/history/list', methods=['POST'])
 def history_list():
-    alerts = History.query.all()
+    alerts = History.query.order_by(desc(History.id)).all()
     output = []
     for a in alerts:
         output.append({

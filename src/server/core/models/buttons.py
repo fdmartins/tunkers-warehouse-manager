@@ -32,6 +32,9 @@ class ButtonCall(db.Model):
     product = db.Column(db.String(50), nullable=False)          # SKU
 
     mission_status = db.Column(db.String(50), nullable=False) 
+
+    id_navithor = db.Column(db.Integer) # id de uma missao cadastrada no navithor.
+
     dt_creation = db.Column(db.DateTime, default=datetime.now())
 
 

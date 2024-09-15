@@ -5,6 +5,7 @@ import hashlib
 from datetime import datetime
 import logging
 import json
+from sqlalchemy import desc
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ def test_buttons():
 
 @app.route('/v1/button/call/list', methods=['POST'])
 def list_call():
-    bt_calls = ButtonCall.query.all()
+    bt_calls = ButtonCall.query.order_by(desc(ButtonCall.id)).all()
     # Formata a saída para visualização
     output = []
     for c in bt_calls:
@@ -138,13 +139,13 @@ def create_call():
 
 @app.route('/v1/button/comm', methods=['POST'])
 def list_comm():
-    bt_status = ButtonStatus.query.all()
+    bt_status = ButtonStatus.query.order_by(desc(ButtonStatus.ip_device)).all()
     # Formata a saída para visualização
     output = []
     for c in bt_status:
         output.append({
             'Botoeira': c.ip_device,
-            'Máquina': c.status_message,
+            'Status': c.status_message,
             'Último Chamado': c.last_call,
             'Última Comunicação': c.last_life,
         })
