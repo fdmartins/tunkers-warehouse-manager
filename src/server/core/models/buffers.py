@@ -51,6 +51,100 @@ class Buffer:
         self.logger.info(json.dumps(self.buffers, indent=4) )
 
 
+    def get_row_positions(self, area_id, row_id):
+        buffer = self.get_buffer_by_id(area_id)
+        
+        
+        for row in buffer['rows']:
+            if row["id"] == row_id:
+
+                ret_positions_occupied = BufferPositions.query.filter_by(area_id=area_id, row_id=row_id).all()
+
+                positions_occupied = {}
+                for p in ret_positions_occupied:
+                    positions_occupied.setdefault(p.pos_id, p.dt_occupation)
+
+                positions = []
+
+                for pos in row["positions"]:
+                    occupied = False
+                    dt_occupation = None
+                    if pos in positions_occupied.keys():
+                        occupied = True
+                        dt_occupation =positions_occupied[pos]
+                    
+                    positions.append({
+                        "pos": pos,
+                        "occupied": occupied,
+                        "occupation_date": dt_occupation
+                    })
+
+                return positions
+            
+        return None
+
+    def get_last_pos_of_sku(self, sku, buffers_allowed):
+        all_ret = BufferSKURow.query.filter_by(sku=sku).all()
+
+        if len(all_ret)==0:
+            self.logger.debug(f"Não encontrado nenhuma rua com SKU {sku}")
+            return None, None
+        
+        for ret in all_ret:
+            if ret.area_id in buffers_allowed:
+                row = self.get_row_positions(ret.area_id, ret.row_id)
+                
+                # varremos a rua da direita para esquerda até encontrar a primeira posicao OCUPADA.
+                for item in reversed(row):
+                    if item['occupied']==True:
+                        return item['pos'], ret.area_id
+            
+        return None, None
+    
+
+    def get_first_free_pos_in_row(self, area_id, row_id):
+        row = self.get_row_positions(area_id, row_id)
+        
+        # encontramos a primeira ocorrência ao varrer a lista de trás para frente:
+        ultima_livre = None, None
+        for item in reversed(row):
+            if item['occupied']==False:
+                ultima_livre = item['pos'], area_id
+            else:
+                break  # Parar ao encontrar o primeiro 'occupied=True'
+
+        return ultima_livre
+            
+    
+
+    def get_free_pos(self, sku, buffers_allowed):
+        free_pos_id = None
+        free_area_id = None 
+
+        ret_all = BufferSKURow.query.filter_by(sku=sku).all()
+
+
+        if len(ret_all)==0:
+            self.logger.debug("não existe ainda uma rua com este sku, pegamos uma rua livre e a dedicamos para o sku")
+            for area_id, buffer in self.buffers.items():
+                for area_id in buffers_allowed:
+                    for row in buffer['rows']:
+                        ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row["id"]).one_or_none()
+                        if ret==None:
+                            free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
+                            if free_pos_id!=None:
+                                # nesse buffer e nessa rua foi encontrado posicao livre.
+                                return free_pos_id, free_area_id 
+            
+        
+        for ret in ret_all:
+            free_pos_id, free_area_id = self.get_first_free_pos_in_row(ret.area_id, ret.row_id)
+            if free_pos_id!=None and free_area_id in buffers_allowed:
+                break
+
+            
+        return free_pos_id, free_area_id 
+
     def get_buffer_by_id(self, area_id):
         # retorna apenas a estrutura, sem status das posicoes.
         if area_id not in self.buffers:
@@ -75,26 +169,7 @@ class Buffer:
                 sku = ret.sku
 
             # verificamos as posicoes ocupadas no banco (descarregados automaticamente)
-            ret_positions_occupied = BufferPositions.query.filter_by(area_id=area_id, row_id=row["id"]).all()
-
-            positions_occupied = {}
-            for p in ret_positions_occupied:
-                positions_occupied.setdefault(p.pos_id, p.dt_occupation)
-
-            positions = []
-
-            for pos in row["positions"]:
-                occupied = False
-                dt_occupation = None
-                if pos in positions_occupied.keys():
-                    occupied = True
-                    dt_occupation =positions_occupied[pos]
-                
-                positions.append({
-                    "pos": pos,
-                    "occupied": occupied,
-                    "occupation_date": dt_occupation
-                })
+            positions = self.get_row_positions(area_id, row["id"])
 
             buffer_view.append({
                 "row_id": row["id"],
@@ -115,6 +190,14 @@ class Buffer:
             if sku is None:
                 if buffer_row:
                     # Se o registro existe e o SKU é None, remove o registro
+
+                    # remove todas ocupacoes associadas.
+                    re = BufferPositions.query.filter_by(area_id=area_id, row_id=row_id).all()
+                    for r in re:
+                        self.logger.warning(f"Buffer {r.area_id}: Liberado rua {r.row_id} posicao {r.pos_id}")
+                        db.session.delete(r)
+
+                    # remove o registro.
                     db.session.delete(buffer_row)
             else:
                 if buffer_row:

@@ -21,13 +21,15 @@ def list_call():
     output = []
     for c in bt_calls:
         output.append({
-            'Botoeira': c.ip_device,
+            'ID': c.id,
+            #'Botoeira': c.ip_device,
             'Máquina': c.id_machine,
             'Material': c.material_type,
             'Tipo Ação': c.action_type,
             'Situação': c.situation,
-            'Bitola': c.gauge,
-            'Produto': c.product,
+            'SKU': c.sku,
+            #'Bitola': c.gauge,
+            #'Produto': c.product,
             'Status': c.mission_status,
             'Dt Chamada': c.dt_creation
         })
@@ -87,8 +89,16 @@ def create_call():
             action_type = data.get('action_type')
             situation = data.get('situation')
             id_machine = data.get('id_machine')
-            gauge = data.get('gauge')
-            product = data.get('product')
+
+            sku = data.get('sku')
+
+            # se enviou sku, fazemos o resolver pela nossa tabela...
+            if sku==None:
+                gauge = data.get('gauge')
+                product = data.get('product')
+            else:
+                gauge = ""
+                product = ""
             
             # Validar se todos os campos estão presentes
             #if not all([ip_device, message_type, material_type, action_type, situation, id_machine, bitola, product]):
@@ -101,6 +111,7 @@ def create_call():
                 action_type=action_type,
                 situation=situation,
                 id_machine=id_machine,
+                sku=sku,
                 gauge=gauge,
                 product=product,
                 mission_status="PENDENTE",

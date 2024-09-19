@@ -39,7 +39,9 @@ def finish_mission():
         'ID Navithor': m.id_server, 
         'ID Local': m.id_local, 
         'Status': m.status, 
-        'Ação Atual': m.current_step_type, 
+        'Passo Atual': m.current_step,
+        'Ação': m.step_type,
+        'Posição Alvo': m.positions_target,
         'Atualizado em': m.dt_updated,
         'Criado em': m.dt_created
         } for m in missions]

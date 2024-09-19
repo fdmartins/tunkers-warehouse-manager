@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from flask_cors import CORS, cross_origin
 
+
+
 app = Flask(__name__)
 
 # Habilitar CORS apenas para uma origem específica
@@ -20,10 +22,15 @@ def start():
     from core import endpoints
     from core import manager
     from core import models
+    from .models.buffers import Buffer
+    from .protocols.navithor import Navithor
 
-    sc = manager.StatusControl(db)
+    comm = Navithor()
+    buffers = Buffer()
 
-    mc = manager.MissionControl(db)
+    sc = manager.StatusControl(db, comm)
+
+    mc = manager.MissionControl(db, buffers,  comm)
 
 
 

@@ -11,8 +11,29 @@ logger = logging.getLogger(__name__)
 
 buffer_service = Buffer()
 
+@app.route('/v1/buffers/list', methods=['GET'])
+def buffer_list():
+
+    buffer = [
+            {
+                "row_id": 1,
+                "description": 'Buffer A Bobinas ',
+            },
+            {
+                "row_id": 2,
+                "description": 'Buffer B Paletes',
+            },
+            ]
+
+    # Usa json.dumps para garantir a ordem das chaves como informado acima.
+    json_output = json.dumps(buffer, default=str, indent=4)
+
+    # Retorna a resposta como um Response para garantir a ordem das chaves
+    return Response(json_output, mimetype='application/json')
+
+
 @app.route('/v1/buffers/<id_buffer>', methods=['POST'])
-def buffer_list(id_buffer):
+def buffer_list_by_id(id_buffer):
     id_buffer = int(id_buffer)
     
     buffer = buffer_service.get_buffer_occupied_by_id(id_buffer)

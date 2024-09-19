@@ -28,8 +28,10 @@ class ButtonCall(db.Model):
     action_type = db.Column(db.String(20), nullable=False)      # ABASTECE / RETIRA
     situation = db.Column(db.String(20), nullable=False)        # COMPLETO / INCOMPLETO
     id_machine = db.Column(db.Integer, nullable=False)             # ID MAQUINA
-    gauge = db.Column(db.String(10), nullable=False)                # Bitola 
-    product = db.Column(db.String(50), nullable=False)          # SKU
+
+    sku = db.Column(db.String(30))                   # sku
+    gauge = db.Column(db.String(10))                # Bitola 
+    product = db.Column(db.String(50))          # product name
 
     mission_status = db.Column(db.String(50), nullable=False) 
 
@@ -50,5 +52,8 @@ class ButtonCall(db.Model):
                 f"id_machine={self.id_machine}, "
                 f"bitola={self.gauge}, "
                 f"product={self.product}, "
+                f"sku={self.sku}, "
                 f"mission_status={self.mission_status}, "
-                f"dt_creation={self.dt_creation})")
+                f"id_navithor={self.id_navithor}, "
+                f"dt_creation={self.dt_creation})"
+                )

@@ -10,14 +10,17 @@ from datetime import datetime, timedelta
 from core import app
 
 class StatusControl:
-    def __init__(self, db):
+    def __init__(self, db, comm):
         self.logger = logging.getLogger(__name__)
         
         self.logger.info("Iniciando StatusControl...")
 
         self.db = db
+        self.comm = comm
 
-        self.comm = Navithor()
+        self.last_token_navithor_update = None
+
+        
 
         # inicia thread.
         flask_thread = Thread(target=self.run_loop)
@@ -31,6 +34,7 @@ class StatusControl:
         while True:
             try:
                 with app.app_context():
+                    self.checkAuthTokenNavithor()
                     self.checkButtonStatus()
                     self.checkMissionStatus()
                     time.sleep(2)
@@ -38,6 +42,15 @@ class StatusControl:
                 self.logger.error(f"ERRO GERAL: {e}")
                 time.sleep(10)
 
+
+    def checkAuthTokenNavithor(self):
+        # o token tem tempo de validade.
+        # renovamos a cada 1h.
+        if self.last_token_navithor_update==None or (datetime.now() - self.last_token_navithor_update) > timedelta(hours=1):
+            self.logger.info("Atualizando Token Navithor...")
+            self.comm.updateAuthToken()
+            self.last_token_navithor_update = datetime.now()
+            self.logger.info("Token Navithor Atualizado!")
 
     def button_status_monitor(self, device):
         
@@ -49,13 +62,13 @@ class StatusControl:
             self.db.session.commit()  # Atualiza o banco de dados
 
             if previous_status_message!=device.status_message:
-                logging.error(f"Dispositivo {device.ip_device} está OFFLINE.")
+                self.logger.error(f"Dispositivo {device.ip_device} está OFFLINE.")
         else:
             device.status_message = "ONLINE"
             self.db.session.commit()  
 
             if previous_status_message!=device.status_message:
-                logging.info(f"Dispositivo {device.ip_device} está ONLINE.")
+                self.logger.info(f"Dispositivo {device.ip_device} está ONLINE.")
 
         # Verificar se a diferença entre life_sequence e life_previous_sequence é maior que 1 
         if device.life_previous_sequence==None:
@@ -67,7 +80,7 @@ class StatusControl:
         #logging.warning(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
 
         if device.life_sequence - device.life_previous_sequence > 1:
-            logging.warning(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
+            self.logger.warning(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
 
 
 
@@ -89,7 +102,7 @@ class StatusControl:
             id_local = b.id
             id_server = b.id_navithor
             
-            actual_state = self.comm.get_mission_status(external_id=id_local, internal_id=id_server)
+            actual_state = self.comm.get_mission_status(external_id=id_local)
 
             # inserimos ou atualizamos se existir o mesmo id_local e id_server
             # Verificar se a missão já existe com o mesmo id_local e id_server
