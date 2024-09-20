@@ -121,9 +121,10 @@ class MissionControl:
                     # retira palete incompleto na saida.
                     steps = self.machine_samps.retira_palete_incompleto(btn_call)
 
-                elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
+                #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
+                    # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
                     # carrega pallete incompleto na saida.
-                    steps = self.machine_samps.abastece_palete_incompleto(btn_call)
+                #    steps = self.machine_samps.abastece_palete_incompleto(btn_call)
                     
                 else:
                     self.logger.error(f"Acao da botoeira invalida {btn_call.action_type}")
@@ -141,10 +142,11 @@ class MissionControl:
 
             # enviamos ao navithor.
 
-            self.logger.info(f"Enviando Missão ID {btn_call.id}...")
+            self.logger.info(f"Enviando Missão ID {btn_call.id}... quantidade de passos {len(steps)}")
             #self.logger.debug(json.dumps(steps, indent=4) )            
             id_server = self.comm.send_mission(id_local=btn_call.id, steps=steps)
 
+            #print(steps)
             # se a missao foi enviada com sucesso. Então armazenamos os steps no banco para acompanhamento de status.
             self.saveSteps(btn_call.id, id_server, steps)
                 
