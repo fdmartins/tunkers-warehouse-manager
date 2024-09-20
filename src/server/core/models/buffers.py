@@ -83,7 +83,9 @@ class Buffer:
             
         return None
 
-    def get_last_pos_of_sku(self, sku, buffers_allowed):
+    def get_occupied_pos_of_sku(self, sku, buffers_allowed):
+        # retorna a primeira posicao acessivel pela rua.
+
         all_ret = BufferSKURow.query.filter_by(sku=sku).all()
 
         if len(all_ret)==0:
@@ -134,6 +136,7 @@ class Buffer:
                             free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
                             if free_pos_id!=None:
                                 # nesse buffer e nessa rua foi encontrado posicao livre.
+                                self.logger.debug(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
                                 return free_pos_id, free_area_id 
             
         
@@ -221,6 +224,31 @@ class Buffer:
         except Exception as e:
             logging.error(e)
             return False
+        
+    def is_position_buffer(self, pos_id):
+        for area_id, buffer in self.buffers.items():
+            for row in buffer['rows']:
+                if pos_id in row["positions"]:
+                    return True
+                
+        return False
+
+    def find_area_and_row_of_position(self, pos_id):
+        for area_id, buffer in self.buffers.items():
+            for row in buffer['rows']:
+                if pos_id in row["positions"]:
+                    return area_id, row["id"]
+                
+        return None, None
+
+    def set_position_ocupation_by_tag_pos(self, pos_id, occupied):
+        # descobrimos de qual area_id e row_id esta posicao pertence.
+        area_id, row_id = self.find_area_and_row_of_position(pos_id)
+        if area_id==None:
+            self.logger.error(f"Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
+            raise Exception("Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
+        
+        return self.set_position_occupation(self, area_id, row_id, pos_id, occupied)
 
 
     def set_position_occupation(self, area_id, row_id, pos_id, occupied):

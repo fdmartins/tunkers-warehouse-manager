@@ -10,12 +10,13 @@ from datetime import datetime, timedelta
 from core import app
 
 class StatusControl:
-    def __init__(self, db, comm):
+    def __init__(self, db, buffers, comm):
         self.logger = logging.getLogger(__name__)
         
         self.logger.info("Iniciando StatusControl...")
 
         self.db = db
+        self.buffers = buffers
         self.comm = comm
 
         self.last_token_navithor_update = None
@@ -93,41 +94,73 @@ class StatusControl:
 
     def checkMissionStatus(self):
         self.logger.debug("Verificando status missões")
+
+        # buscamos missoes na API do navithor.
+        navithor_missions = self.comm.get_mission_status() 
         
-        # buscamos todos as missoes com o status diferentes de completed.
-        button_calls = ButtonCall.query.filter(ButtonCall.mission_status!='FINALIZADO').all()
+        # buscamos todos as missoes no banco de dados.
+        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
 
-        # consultamos e atualizamos os status das missoes diferentes de completes.
-        for b in button_calls:        
-            id_local = b.id
-            id_server = b.id_navithor
+
+        # varremos as missoes em nosso db, e atualizamos com os status do navithor.
+        # se a missao do db nao existir no status navithor, assumimos como concluido.
+        # se  a missao é concluida em uma posicao gerenciavel por nós, por ex os buffer, liberamos ou ocupamos a posicao.
+
+        # passamos pelas missoes cadastradas em nosso db...
+        for l_m in local_missions:        
+            existsOnNavithor = False
             
-            actual_state = self.comm.get_mission_status(external_id=id_local)
+            # passamos pelas missoes cadastradas no navithor...
+            for nt_m in navithor_missions:
+                navithor_id = nt_m["Id"]
+                navithor_state = nt_m["State"] #StateEnum (estado geral da missao)
+                local_id = nt_m["ExternalId"]
+                agv = nt_m["AssignedMachineId"]
+                current_step_index = nt_m["CurrentStepIndex"]
+                steps = nt_m["Steps"]
 
-            # inserimos ou atualizamos se existir o mesmo id_local e id_server
-            # Verificar se a missão já existe com o mesmo id_local e id_server
-            mission = Mission.query.filter_by(id_local=id_local, id_server=id_server).first()
+                # passamos pelos passos de cada missao.
+                for idx_step in range(len(steps)):
+                    nt_s = steps[idx_step]
+                    # atualizamos os status de cada passo individualmente.
+                    if l_m.id_server == navithor_id and l_m.id_local == local_id and l_m.step_id==idx_step:
+                        existsOnNavithor = True
+                        if l_m.status != nt_s["StepStatus"]:
+                            l_m.status = nt_s["StepStatus"]
+                            l_m.dt_updated = datetime.utcnow()
+                            self.logger.info(f"Missão atualizada: id_local={local_id}, id_server={navithor_id}")
 
-            if mission:
-                # Atualizar campos se a missão existir
-                mission.status = actual_state.status
-                mission.current_step_type = actual_state.current_step_type
-                mission.dt_updated = datetime.utcnow()
-                self.logger.info(f"Missão atualizada: id_local={id_local}, id_server={id_server}")
-            else:
-                # Criar nova missão se não existir
-                mission = Mission(
-                    id_local=id_local,
-                    id_server=id_server,
-                    status=actual_state.status,
-                    current_step_type=actual_state.current_step_type,
-                    dt_created=datetime.utcnow(),
-                    dt_updated=datetime.utcnow()
-                )
-                self.db.session.add(mission)
-                self.logger.info(f"Nova missão criada para monitoramento: id_local={id_local}, id_server={id_server}")
-            
-            # Confirmar alterações no banco de dados
-            self.db.session.commit()
+                            # verifica se a posicao é um target.
+                            target_pos = int(nt_s["CurrentTargetId"])
+                            if nt_s["StepStatus"]=="Complete":
+
+                                if self.buffers.is_position_buffer(target_pos):
+                                    if nt_s["StepType"]=="Pickup":
+                                        # retirou. setamos buffer vazio.
+                                        self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=False)
+
+                                    if nt_s["StepType"]=="Dropoff": 
+                                        # colocou. setamos buffer ocupado.
+                                        self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=False)
+                                else:
+                                    self.logger.info(f"Passo da missão foi finalizada em na posição {target_pos} que não é buffer.")
+
+            if not existsOnNavithor:
+                # seta como concluido.
+                self.logger.info(f"Passo da missão {l_m.id_server} (id local:{l_m.id_local}) não existe mais no navithor. Finalizamos.")
+                if l_m.status=="Complete":
+                    self.logger.error(f"O passo foi finalizado fora de ciclo! Ultimo status: {l_m.status}")
+
+                l_m.status = "FINALIZADO"
+
+                # tambem setamos como finalizado no chamado da botoeira.
+                button_call = ButtonCall.query.get(l_m.id_local)
+
+                # Verifique se o registro existe
+                if button_call:
+                    # Atualize o status da missão para "Concluido"
+                    button_call.mission_status = "FINALIZADO"
+
+        self.db.session.commit()
         
 

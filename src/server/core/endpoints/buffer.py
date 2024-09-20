@@ -14,16 +14,13 @@ buffer_service = Buffer()
 @app.route('/v1/buffers/list', methods=['GET'])
 def buffer_list():
 
-    buffer = [
-            {
-                "row_id": 1,
-                "description": 'Buffer A Bobinas ',
-            },
-            {
-                "row_id": 2,
-                "description": 'Buffer B Paletes',
-            },
-            ]
+    buffer = []
+
+    for bid, data in buffer_service.buffers.items():
+        buffer.append(   {
+                    "row_id": bid,
+                    "description": data["titulo_area"],
+                },)
 
     # Usa json.dumps para garantir a ordem das chaves como informado acima.
     json_output = json.dumps(buffer, default=str, indent=4)

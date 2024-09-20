@@ -94,7 +94,8 @@ class Navithor:
         return response["InternalId"]
 
  
-    def get_mission_status(self, external_id):
+    def get_mission_status(self):
+        return []
         #self.logger.debug("Verificando Status das Missões...")
 
         #endpoint = "/api/MissionStatusRequest"
@@ -102,11 +103,11 @@ class Navithor:
         
         response = self.call_api(endpoint)
 
-        for m in response:
-            if m["ExternalId"]==external_id:
-                return m
+        #for m in response:
+        #    if m["ExternalId"]==external_id:
+        #        return m
             
-        return None
+        return response
 
 
     def extend_mission(self, external_id=None, steps=None):

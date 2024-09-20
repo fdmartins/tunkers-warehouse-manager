@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @app.route('/v1/history/alerts', methods=['POST'])
 def last_alerts():
-    alerts = History.query.filter_by(level='ERRO').order_by(desc(History.id)).all()
+    alerts = History.query.filter_by(level='ERRO').order_by(desc(History.id)).limit(20).all()
     output = []
     for a in alerts:
         output.append({

@@ -28,7 +28,7 @@ def start():
     comm = Navithor()
     buffers = Buffer()
 
-    sc = manager.StatusControl(db, comm)
+    sc = manager.StatusControl(db, buffers, comm)
 
     mc = manager.MissionControl(db, buffers,  comm)
 

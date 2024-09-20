@@ -1,11 +1,19 @@
 from threading import Thread
 import time
 
+from ..models.mission import Mission
+
+from .steps import STEPS
+
+from .machine_SAMPS import SAMPS
+from .machine_RETROFI import RETROFI
+
 from ..protocols.defines import StepType
 from ..models.buttons import ButtonCall
-
 import logging
 from core import app
+import json 
+
 
 class MissionControl:
     def __init__(self, db, buffer,  comm):
@@ -19,17 +27,9 @@ class MissionControl:
 
         self.buffers = buffer
 
-        # carrega posicoes/tags de cada maquina.
-        self.machines_requests = {
-            1: {
-                "ABASTECE": {"POS": 5000, "BUFFERS_ALLOWED": [1,2]} , 
-                "RETIRA":   {"POS": 5010, "BUFFERS_ALLOWED": [2]} ,   
-                },
-            2: {
-                "ABASTECE": {"POS": 6000, "BUFFERS_ALLOWED": [1,2]} , 
-                "RETIRA":   {"POS": 6010, "BUFFERS_ALLOWED": [1,2]} , 
-                }
-        }
+        self.machine_retrofi = RETROFI(self.db , self.buffers)
+        self.machine_samps = SAMPS(self.db , self.buffers)
+        
 
         # inicia thread.
         flask_thread = Thread(target=self.run_loop)
@@ -50,10 +50,22 @@ class MissionControl:
                 time.sleep(10)
 
             
-    def get_pos_from_machine_by_id_and_action(self, machine_id, action):
-        pos =  self.machines_requests[machine_id][action]["POS"]
-        buffers_allowed = self.machines_requests[machine_id][action]["BUFFERS_ALLOWED"]
-        return pos, buffers_allowed
+    def saveSteps(self, id_local, id_server, steps):
+        
+        for id_step in range(len(steps)):
+            s = steps[id_step]
+            m = Mission(
+                id_local = id_local,
+                id_server = id_server,
+                status = "ENVIADO AO NAVITHOR",
+                step_id = id_step,
+                step_type = s["StepType"] ,
+                
+                position_target = s["AllowedTargets"][0]["Id"]
+            )
+            self.db.session.add(m)
+
+        self.db.session.commit()
 
     def run(self):
         
@@ -66,128 +78,75 @@ class MissionControl:
         for btn_call in button_calls:
             self.logger.debug(f"CHAMADO BOTOEIRA PENDENTE: {btn_call}" )
         
-            # SE DESCARGA / ENTRADA MAQUINA:
-            #       MISSAO: Buscar o SKU desejado no BUFFER e Descarregar na maquina. Setar WaitForExtension
-            # SE CARGA / SAIDA MAQUINA:
-            #       Manter pendente se tem chamado botoeira para DESCARGA na entrada da mesma maquina.
-            #       MISSAO: Enviar missao como extension com CARGA NA SAIDA e descarga no BUFFER. Na missão que esta com WaitingExtension na mesma maquina.
-            #       Não existe chamado botoeira para descarga. Nem missao com WaitingExtension. Então, MISSAO: para retirar CARGA NA SAIDA e descarga no BUFFER.
+            steps = None
 
-            pos_load = None
-            pos_unload = None
-            extension_of = None
+            if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489]:
+                # maquina RETRIFILA
+                if btn_call.action_type=="ABASTECE":
+                    # carretel cheio na entrada e retira carretel vazio
+                    steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_cheio(btn_call)    
 
-            if btn_call.action_type=="ABASTECE":
-                # entrada de maquina.
-                
-                pos_unload, buffers_allowed= self.get_pos_from_machine_by_id_and_action(btn_call.id_machine, "ABASTECE")
+                if btn_call.action_type=="NAO_CONFORME":
+                    # carretel cheio nao conforme e retira carretel vazio
+                    steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_nao_conforme(btn_call)   
 
-                # verificamos qual posicao tem o SKU.
-                tag_pos_sku, area_id_sku = self.buffers.get_last_pos_of_sku(btn_call.sku, buffers_allowed)
+                if btn_call.action_type=="ABASTECE_ENTRADA":
+                    # carretel cheio na entrada e retira carretel vazio
+                    steps = self.machine_retrofi.abastece_carretel_vazio(btn_call)      
 
-                if tag_pos_sku == None:
-                    # nao existe sku no buffer.
-                    # nao devemos entrar nunca aqui, pois tratamos isso logo no chamado.
-                    self.logger.error(f"Não existe sku {btn_call.sku} solicitado pela maquina {btn_call.id_machine} - POR QUE ESTAMOS AQUI!?!? ")
-                    continue
-                else:
-                    pos_load = tag_pos_sku
+
+            if btn_call.id_machine in [6146,6155,6148,6151,6144]:
+                # maquinas SAMPS
+                if btn_call.action_type=="ABASTECE":
+                    # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+                    steps = self.machine_samps.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_samps.retira_carretel_nao_conforme(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="ERRADO":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_samps.retira_carretel_errado(btn_call)
+
+                elif btn_call.action_type=="ABASTECE_ENTRADA":
+                    # leva carretel na entrada da maquina, mas nao retira vazio.
+                    steps = self.machine_samps.so_abastece_carretel(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
+                    # retira palete completo na saida.
+                    steps = self.machine_samps.retira_palete(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
+                    # retira palete incompleto na saida.
+                    steps = self.machine_samps.retira_palete_incompleto(btn_call)
+
+                elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
+                    # carrega pallete incompleto na saida.
+                    steps = self.machine_samps.abastece_palete_incompleto(btn_call)
                     
-                    self.logger.debug(f"Encontrado posicao {pos_unload} para acao ABASTECE na maquina {btn_call.id_machine} ")
-                    self.logger.info(f"Encontramos o sku na posicao {tag_pos_sku} do buffer id {area_id_sku} , moveremos para posicao {pos_unload}")      
-
-            elif btn_call.action_type=="RETIRA":
-                # saida da maquina.
-                # verificamos se tem chamado de ABASTECE na mesma maquina 
-                # PREMISSA para fazer o ciclo completo: Primeiro deve ter chamado de ABASTECE, depois RETIRA.
-                ret = ButtonCall.query.filter(
-                    ButtonCall.mission_status.in_(["EXECUTANDO", "PENDENTE"]), 
-                    ButtonCall.id_machine==btn_call.id_machine,
-                    ButtonCall.action_type=="ABASTECE",
-                    ButtonCall.id != btn_call.id).one_or_none()
-                
-                if ret!=None:
-                    # existe missao. Enviamos como extensao da atual.
-                    self.logger.info(f"Criando passo de missão extendida do chamado {ret.id}, pois encontrei chamado para ABASTECER a mesma maquina {btn_call.id_machine}. ")
-                    extension_of = ret.id
-                    
-                # nao existe missao. Entao executamos como missao unica.
-                pos_load, buffers_allowed = self.get_pos_from_machine_by_id_and_action(btn_call.id_machine, "RETIRA")
-                self.logger.debug(f"Encontrado posicao {pos_load} para acao RETIRA na maquina {btn_call.id_machine} ")
-
-                # buscamos proxima posicao vazia no buffer. 
-                self.logger.debug(f"Procurando posicao no buffer para sku {btn_call.sku}")
-                tag_pos_sku, area_id_sku  = self.buffers.get_free_pos(btn_call.sku, buffers_allowed)
-
-                if tag_pos_sku == None:
-                    self.logger.error(f"Não foi possivel encontrar posicao no buffer para o sku {btn_call.sku} ")
-                    continue
                 else:
-                    self.logger.debug(f"Encontrado posicao {tag_pos_sku} no buffer {area_id_sku} para sku {btn_call.sku}")
-                    pos_unload = tag_pos_sku
-
-            else:
-                raise Exception(f"action_type nao esperado: {btn_call.action_type}")
+                    self.logger.error(f"Acao da botoeira invalida {btn_call.action_type}")
+                    # TODO - cancelamos o chamado
+                     
 
 
             # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
-            # CORRIGIR. Precisa verificar em STEPS.
-            #ret = ButtonCall.query.filter(
-            #        ButtonCall.mission_status.in_(["EXECUTANDO", "PENDENTE"]), 
-            #        ButtonCall.id != btn_call.id).all()
-            #for r in ret:
-            #    self.buffers.get_buffer_info_from_pos(r)
+            # Segundo ademilson, o navithor garante sequenciamento de trafego, então vamos ignorar esse trtamento no momento.
 
 
-            # montamos os passos da missão.
-
-            self.logger.info(f"Enviando Missão para Carregar em {pos_load} Descarregar em {pos_unload}")
-
-            steps = [  # passos de execucao da missao.
-                {
-                    "StepType": StepType.Pickup.value, # acao de carga Enum StepType
-                    "Options": {
-                        #"Load": {
-                        #    "RequiredLoadStatus": "LoadAtLocation",
-                        #    "RequiredLoadType": 2
-                        #},
-                        "SortingRules": ["Priority", "Closest"]
-                    },
-                    "AllowedTargets": [  # vai para qualquer uma dessas posicoes, priorizando prioridade e proximidade.
-                        {"Id": pos_load},
-                    ],
-                    "AllowedWaits": [ # se os targets estiverem ocupados/reservados, pode aguardar nessas posicoes..
-                       # {"Id": 16}
-                    ]
-                },
-
-                {
-                    "StepType": StepType.Dropoff.value, # acao de carga Enum StepType
-                    "Options": {
-                        #"Load": {
-                        #    "RequiredLoadStatus": "LoadAtLocation",
-                        #    "RequiredLoadType": 2
-                        #},
-                        "SortingRules": ["Priority", "Closest"],
-                        "WaitForExtension": True
-                    },
-                    "AllowedTargets": [  # vai para qualquer uma dessas posicoes, priorizando prioridade e proximidade.
-                        {"Id": pos_unload},
-                    ],
-                    "AllowedWaits": [ # se os targets estiverem ocupados/reservados, pode aguardar nessas posicoes..
-                       # {"Id": 16}
-                    ]
-                },
-            ]
-
+            if steps==None:
+                self.logger.info("Nenhuma missão a ser enviada.")
+                continue
 
             # enviamos ao navithor.
-            if extension_of==None:
-                self.logger.info(f"Enviando Missão ID {btn_call.id}...")
-                id_server = self.comm.send_mission(id_local=btn_call.id, steps=steps)
-            else:
-                self.logger.info(f"Extendendo Missão ID {extension_of}...")
-                id_server = self.comm.extend_mission(extension_of, steps=steps)
+
+            self.logger.info(f"Enviando Missão ID {btn_call.id}...")
+            #self.logger.debug(json.dumps(steps, indent=4) )            
+            id_server = self.comm.send_mission(id_local=btn_call.id, steps=steps)
+
+            # se a missao foi enviada com sucesso. Então armazenamos os steps no banco para acompanhamento de status.
+            self.saveSteps(btn_call.id, id_server, steps)
                 
             
             self.logger.info(f"OK Missão ID Navithor: {id_server}")
