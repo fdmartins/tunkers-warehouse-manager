@@ -3,6 +3,7 @@ from datetime import datetime
 import configparser
 import logging
 import json 
+from ..utils import FileRef
 
 class Buffer:
     """
@@ -17,7 +18,7 @@ class Buffer:
         config = configparser.ConfigParser()
 
         # Lê o arquivo de configuração
-        config.read('buffer.ini')
+        config.read(FileRef.get_path('./configs/buffer.ini'))
 
         #self.buffers = {section: dict(config.items(section)) for section in config.sections()}
 

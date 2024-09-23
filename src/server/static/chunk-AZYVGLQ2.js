@@ -1,0 +1,1 @@
+import{Nb as e,ka as r}from"./chunk-6VFV3J45.js";var i=class n{datePipe=r.create({providers:[e]}).get(e);constructor(){r.create({providers:[e]})}static init(){return new n}isAndFormattedDate(t){return new RegExp(/\d{4}-(\d{2}-?)+ (\d{2}:?)+/g).test(t)?this.datePipe.transform(t,"dd/MM/yyyy HH:mm:ss"):t}};export{i as a};

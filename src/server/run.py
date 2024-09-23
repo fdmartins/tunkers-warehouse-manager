@@ -1,7 +1,7 @@
 import webbrowser
 import socket
-#import tkinter as tk
-#from tkinter import messagebox
+import tkinter as tk
+from tkinter import messagebox
 from threading import Thread
 import logging
 import time
@@ -27,6 +27,7 @@ def get_local_ip():
 
 # Function to open the default browser
 def open_browser(ip, port):
+    ip = '127.0.0.1'
     webbrowser.open(f'http://{ip}:{port}')
 
 # Function to handle window close with confirmation
@@ -52,7 +53,7 @@ def create_window(ip, port):
     window.geometry('300x150')
 
     # Override the close button event to ask for confirmation
-    window.protocol("WM_DELETE_WINDOW", lambda: on_closing(window))
+   #window.protocol("WM_DELETE_WINDOW", lambda: on_closing(window))
     
 
     window.mainloop()
@@ -97,9 +98,9 @@ if __name__ == '__main__':
 
     core.start()
 
-    while True:
-        time.sleep(1)
-    if False:
+    #while True:
+    #    time.sleep(1)
+    if True:
         # Open browser automatically
         logging.info(f"Abrindo Browser Automaticamente...")
         #open_browser(ip, port)
