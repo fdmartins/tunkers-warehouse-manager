@@ -8,6 +8,7 @@ import time
 import logging
 from datetime import datetime, timedelta
 from core import app
+import json
 
 class StatusControl:
     def __init__(self, db, buffers, comm):
@@ -21,7 +22,7 @@ class StatusControl:
 
         self.last_token_navithor_update = None
 
-        
+        self.last_positions = ""
 
         # inicia thread.
         flask_thread = Thread(target=self.run_loop)
@@ -35,10 +36,13 @@ class StatusControl:
         while True:
             try:
                 with app.app_context():
+                    self.mirrorBufferPositionsToNavithor()
                     self.checkAuthTokenNavithor()
+                    
+                    
                     self.checkButtonStatus()
                     self.checkMissionStatus()
-                    time.sleep(2)
+                    time.sleep(5)
             except Exception as e:
                 self.logger.error(f"ERRO GERAL: {e}")
                 time.sleep(10)
@@ -92,6 +96,20 @@ class StatusControl:
             self.button_status_monitor(device)
 
 
+    # Função que converte automaticamente datetime para uma string
+    def datetime_converter(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()  # Converte para string no formato ISO
+        
+    def mirrorBufferPositionsToNavithor(self):
+        # atualizamos no navithor os status de ocupacoes das posicoes do buffer.
+        positions = self.buffers.get_all_positions_and_ocupations()
+
+        for p in positions:
+            if self.comm.get_position_occupation(p["pos"])!=p["occupied"]:
+                self.logger.warning(f"Posicao {p['pos']} com status de ocupacao corrigida. Agora occupied=={p['occupied']}")
+                self.comm.set_position_occupation(p["pos"], p["occupied"])
+        
     def checkMissionStatus(self):
         self.logger.debug("Verificando status missões")
 
@@ -109,12 +127,27 @@ class StatusControl:
         # passamos pelas missoes cadastradas em nosso db...
         for l_m in local_missions:        
             existsOnNavithor = False
+
+            # AUTO CORRECAO... 
+            # atualizamos as ocupacoes das posicoes no navithor de acordo com as movimentacoes atuais.
+            if l_m.status=="DrivingToPickup" or l_m.status=="PickingUp" :
+                # entao a posicao de destino deve estar marcada como OCUPADA.
+                if self.comm.get_position_occupation(l_m.position_target)==False:
+                    self.logger.warning(f"Posicao {l_m.position_target} nao tinha ocupacao no navithor. Marcamos como ocupada para poder efetuar a carga.")
+                    self.comm.set_position_occupation(l_m.position_target, occupied=True)
+
+            if l_m.status=="DrivingToDropoff" or l_m.status=="DroppingOff" :
+                # entao a posicao de destino deve estar marcada como LIVRE.
+                if self.comm.get_position_occupation(l_m.position_target)==True:
+                    self.logger.warning(f"Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
+                    self.comm.set_position_occupation(l_m.position_target, occupied=False)
+
             
             # passamos pelas missoes cadastradas no navithor...
             for nt_m in navithor_missions:
                 navithor_id = nt_m["Id"]
                 navithor_state = nt_m["State"] #StateEnum (estado geral da missao)
-                local_id = nt_m["ExternalId"]
+                local_id = int(nt_m["ExternalId"])
                 agv = nt_m["AssignedMachineId"]
                 current_step_index = nt_m["CurrentStepIndex"]
                 steps = nt_m["Steps"]
@@ -126,9 +159,11 @@ class StatusControl:
                     if l_m.id_server == navithor_id and l_m.id_local == local_id and l_m.step_id==idx_step:
                         existsOnNavithor = True
                         if l_m.status != nt_s["StepStatus"]:
+                            self.logger.info(f"Missão atualizada: id_local={local_id}, id_server={navithor_id} passo {idx_step} posicao {nt_s["CurrentTargetId"]} status {l_m.status} => {nt_s["StepStatus"]}")
+
                             l_m.status = nt_s["StepStatus"]
                             l_m.dt_updated = datetime.utcnow()
-                            self.logger.info(f"Missão atualizada: id_local={local_id}, id_server={navithor_id}")
+                            
 
                             # verifica se a posicao é um target.
                             target_pos = int(nt_s["CurrentTargetId"])
@@ -141,7 +176,7 @@ class StatusControl:
 
                                     if nt_s["StepType"]=="Dropoff": 
                                         # colocou. setamos buffer ocupado.
-                                        self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=False)
+                                        self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=True)
                                 else:
                                     self.logger.info(f"Passo da missão foi finalizada em na posição {target_pos} que não é buffer.")
 

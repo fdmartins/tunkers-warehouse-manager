@@ -44,7 +44,7 @@ class MissionControl:
             try:
                 with app.app_context():
                     self.run()
-                    time.sleep(1)
+                    time.sleep(5)
             except Exception as e:
                 self.logger.error(f"ERRO GERAL: {e}")
                 time.sleep(10)
@@ -140,7 +140,7 @@ class MissionControl:
                 self.logger.info("Nenhuma missão a ser enviada.")
                 continue
 
-            # enviamos ao navithor.
+            # enviamos ao navithor. 
 
             self.logger.info(f"Enviando Missão ID {btn_call.id}... quantidade de passos {len(steps)}")
             #self.logger.debug(json.dumps(steps, indent=4) )            

@@ -52,6 +52,7 @@ class Buffer:
         self.logger.info(json.dumps(self.buffers, indent=4) )
 
 
+
     def get_row_positions(self, area_id, row_id):
         buffer = self.get_buffer_by_id(area_id)
         
@@ -185,6 +186,18 @@ class Buffer:
         return buffer_view
 
 
+    def get_all_positions_and_ocupations(self):
+        positions = []
+        for buffer_id in self.buffers.keys():
+            #print(buffer_id)
+            buffer = self.get_buffer_occupied_by_id(buffer_id)
+            for row in buffer:
+                #print(row["positions"])
+                p = row["positions"]
+                positions+=p
+
+        return positions
+
     def set_sku_to_row(self, area_id, row_id, sku):
 
         try:
@@ -243,13 +256,14 @@ class Buffer:
         return None, None
 
     def set_position_ocupation_by_tag_pos(self, pos_id, occupied):
+        self.logger.info(f"Marcando Posicao {pos_id} com occupied={occupied}")
         # descobrimos de qual area_id e row_id esta posicao pertence.
         area_id, row_id = self.find_area_and_row_of_position(pos_id)
         if area_id==None:
             self.logger.error(f"Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
             raise Exception("Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
         
-        return self.set_position_occupation(self, area_id, row_id, pos_id, occupied)
+        return self.set_position_occupation(area_id, row_id, pos_id, occupied)
 
 
     def set_position_occupation(self, area_id, row_id, pos_id, occupied):

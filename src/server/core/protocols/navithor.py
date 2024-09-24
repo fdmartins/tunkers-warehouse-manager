@@ -19,20 +19,28 @@ class Navithor:
         except Exception as err:
             self.logger.error("Falha atualizacao token autenticacao navithor: " + str(err))
 
-    def call_api(self, endpoint, payload={}, method="POST", headers=None):
+    def call_api(self, endpoint, payload={}, headers=None, method="POST"):
 
         if headers==None:
             headers = {
                 'Authorization': f'Bearer {self.access_token}',
                 "Content-Type": "application/json"
             }
+        
+        #self.logger.debug(headers)
 
         # Faz a requisição POST para a API
         if method=="POST":
-            response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
+            if headers["Content-Type"]=="application/x-www-form-urlencoded":
+                #self.logger.debug("application/x-www-form-urlencoded")
+                response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", data=payload, headers=headers)
+            else:
+                response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
         else:
             response = requests.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
 
+
+        self.logger.debug(response.json())
 
         return response.json()
     
@@ -49,7 +57,7 @@ class Navithor:
 
 
     def updateAuthToken(self):
-        return
+        #return
         endpoint = "/api/token"
 
         payload = 'username=navitec&password=navitrol&grant_type=password'
@@ -69,7 +77,7 @@ class Navithor:
 
     def send_mission(self, id_local, steps):
         self.logger.info("Enviando Missão ao Navithor...")
-        return id_local
+        #return id_local
         
         endpoint = "/api/missioncreate"
 
@@ -82,7 +90,7 @@ class Navithor:
             "Steps": steps
         }
 
-        self.logger.info(payload)
+        self.logger.debug(payload)
         #exit()
 
         response =  self.call_api(endpoint, payload)
@@ -95,13 +103,13 @@ class Navithor:
 
  
     def get_mission_status(self):
-        return []
+        #return []
         #self.logger.debug("Verificando Status das Missões...")
 
         #endpoint = "/api/MissionStatusRequest"
         endpoint = "/api/GetMissions" # retorna mais ifnormacoes uteis, como o passo que esta sendo executado!!)
         
-        response = self.call_api(endpoint)
+        response = self.call_api(endpoint, method="GET")
 
         #for m in response:
         #    if m["ExternalId"]==external_id:
@@ -112,7 +120,7 @@ class Navithor:
 
     def extend_mission(self, external_id=None, steps=None):
         self.logger.info("Enviando Extensão da Missão ao Navithor...")
-        return external_id
+        #return external_id
     
         endpoint = "/api/MissionExtend"
 
@@ -130,4 +138,45 @@ class Navithor:
         
         return response["InternalId"]
 
+
+    def set_position_occupation(self, position, occupied):
+        self.logger.info(f"Marcando posicao {position} com ocupacao={occupied}...")
+
+        endpoint = "/api/LoadAtLocation" 
+        
+
+        payload = {
+            "symbolicPointId": position,
+            "resourceType":1,
+            "amount": 1 if occupied else 0
+        }
+
+        self.logger.debug(payload)
+
+        response =  self.call_api(endpoint, payload)
+
+        if response["success"]==False:
+            self.logger.error(f"NAVITHOR NAO RETORNO SUCESSO AO MUDAR STATUS DE OCUPACAO DA POSICAO {position}")
+
+    def get_position_occupation(self, position):
+        self.logger.debug(f"Buscando status de ocupacao da posicao {position}...")
+
+        endpoint = "/api/LoadAtLocation" 
+        
+
+        payload = {
+            "symbolicPointId": position,
+        }
+
+        self.logger.debug(payload)
+
+        response =  self.call_api(endpoint, payload, method="GET")
+
+
+        if response["LoadCount"]!=0:
+            return True
+
+        return False
+
+        
 

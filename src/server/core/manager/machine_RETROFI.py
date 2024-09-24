@@ -49,7 +49,7 @@ class RETROFI:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarrega carretel CHEIO no buffer. (id 2)
-        tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[2, ])
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
             return None

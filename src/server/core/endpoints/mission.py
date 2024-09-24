@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, Response
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 from core import db, app
 from core.models import User, Mission
 import json
@@ -15,7 +15,7 @@ def test_mission():
 
 @app.route('/v1/mission/status/pending', methods=['POST'])
 def pending_mission():
-    missions = Mission.query.filter(Mission.status!='FINALIZADO').order_by(desc(Mission.id)).all()
+    missions = Mission.query.filter(Mission.status!='FINALIZADO').order_by(asc(Mission.id)).all()
     output = [{
         #'id': m.id, 
         'ID Navithor': m.id_server, 
