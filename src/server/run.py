@@ -49,7 +49,7 @@ def create_window(ip, port):
     window.title("Não feche esta janela")
 
     # Definindo o tamanho da janela
-    window.geometry('400x200')
+    window.geometry('400x250')
 
     # Adicionando uma cor de fundo para a janela
     window.configure(bg='#f0f0f0')  # Cor de fundo suave
