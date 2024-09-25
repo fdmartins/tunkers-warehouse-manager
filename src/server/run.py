@@ -10,7 +10,7 @@ import core
 
 port = 8080
 DEBUG = True
-
+VERSION = "20240925"
 
 # Function to get the local IP address
 def get_local_ip():
@@ -39,18 +39,40 @@ def on_closing(window):
 # Function to create the tkinter window
 def create_window(ip, port):
     window = tk.Tk()
+
+
+    # Definindo o estilo das fontes
+    font_style1 = ("Helvetica", 10)
+    font_style2 = ("Helvetica", 13, "bold")
+    font_style3 = ("Helvetica", 16, "bold")
+
     window.title("Não feche esta janela")
 
-    label = tk.Label(window, text=f"Sistema de Gestão Posições AGV")
+    # Definindo o tamanho da janela
+    window.geometry('400x200')
+
+    # Adicionando uma cor de fundo para a janela
+    window.configure(bg='#f0f0f0')  # Cor de fundo suave
+
+    # Criando um frame centralizado
+    frame = tk.Frame(window, bg='#f0f0f0')
+    frame.pack(pady=20)
+
+    # Label do título principal
+    label = tk.Label(frame, text="Sistema de Gestão de Posições", font=font_style3, bg='#f0f0f0', fg='#333333')
     label.pack(pady=10)
 
-    label = tk.Label(window, text=f"Endereço IP: http://{ip}:{port}")
+    # Label da versão
+    label = tk.Label(frame, text=f"Versão: {VERSION}", font=font_style1, bg='#f0f0f0', fg='#666666')
+    label.pack(pady=5)
+
+    # Label do endereço IP e porta
+    label = tk.Label(frame, text=f"Endereço: http://{ip}:{port}", font=font_style2, bg='#f0f0f0', fg='#007acc')
     label.pack(pady=10)
 
-    button = tk.Button(window, text="Abrir Browser", command=lambda: open_browser(ip, port))
-    button.pack(pady=10)
-
-    window.geometry('300x150')
+    # Botão para abrir o navegador
+    button = tk.Button(frame, text="Abrir Tela/Browser", height=2, command=lambda: open_browser(ip, port),  font=font_style2)
+    button.pack(pady=10) 
 
     # Override the close button event to ask for confirmation
    #window.protocol("WM_DELETE_WINDOW", lambda: on_closing(window))

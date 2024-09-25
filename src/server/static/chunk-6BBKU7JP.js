@@ -1,1 +1,0 @@
-import"./chunk-2VMXMS7J.js";var t=[{path:"",loadComponent:()=>import("./chunk-UY3W6YJC.js").then(o=>o.BuffersComponent),children:[{path:":name/:id",loadComponent:()=>import("./chunk-X3J5LQO5.js").then(o=>o.BufferComponent)}]}];export{t as routes};

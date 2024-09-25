@@ -127,21 +127,6 @@ class StatusControl:
         # passamos pelas missoes cadastradas em nosso db...
         for l_m in local_missions:        
             existsOnNavithor = False
-
-            # AUTO CORRECAO... 
-            # atualizamos as ocupacoes das posicoes no navithor de acordo com as movimentacoes atuais.
-            if l_m.status=="DrivingToPickup" or l_m.status=="PickingUp" :
-                # entao a posicao de destino deve estar marcada como OCUPADA.
-                if self.comm.get_position_occupation(l_m.position_target)==False:
-                    self.logger.warning(f"Posicao {l_m.position_target} nao tinha ocupacao no navithor. Marcamos como ocupada para poder efetuar a carga.")
-                    self.comm.set_position_occupation(l_m.position_target, occupied=True)
-
-            if l_m.status=="DrivingToDropoff" or l_m.status=="DroppingOff" :
-                # entao a posicao de destino deve estar marcada como LIVRE.
-                if self.comm.get_position_occupation(l_m.position_target)==True:
-                    self.logger.warning(f"Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
-                    self.comm.set_position_occupation(l_m.position_target, occupied=False)
-
             
             # passamos pelas missoes cadastradas no navithor...
             for nt_m in navithor_missions:
@@ -159,13 +144,29 @@ class StatusControl:
                     if l_m.id_server == navithor_id and l_m.id_local == local_id and l_m.step_id==idx_step:
                         existsOnNavithor = True
                         if l_m.status != nt_s["StepStatus"]:
-                            self.logger.info(f"Missão atualizada: id_local={local_id}, id_server={navithor_id} passo {idx_step} posicao {nt_s["CurrentTargetId"]} status {l_m.status} => {nt_s["StepStatus"]}")
+                            self.logger.info(f"Missão atualizada: id_local={local_id}, id_server={navithor_id} passo {idx_step} posicao {nt_s['CurrentTargetId']} status {l_m.status} => {nt_s['StepStatus']}")
 
+                            # atualizamos as ocupacoes das posicoes no navithor de acordo com as movimentacoes atuais.
+                            # isso tem mais um papel de auto correcao em caso de erro de box ocupado no navithor.
+                            if nt_s["StepStatus"]=="DrivingToPickup":# or nt_s["StepStatus"]=="PickingUp" :
+                                # entao a posicao de destino deve estar marcada como OCUPADA.
+                                if self.comm.get_position_occupation(l_m.position_target)==False:
+                                    self.logger.warning(f"Posicao {l_m.position_target} nao tinha ocupacao no navithor. Marcamos como ocupada para poder efetuar a carga.")
+                                    self.comm.set_position_occupation(l_m.position_target, occupied=True)
+
+
+                            if nt_s["StepStatus"]=="DrivingToDropoff":# or nt_s["StepStatus"]=="DroppingOff" :
+                                # entao a posicao de destino deve estar marcada como LIVRE.
+                                if self.comm.get_position_occupation(l_m.position_target)==True:
+                                    self.logger.warning(f"Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
+                                    self.comm.set_position_occupation(l_m.position_target, occupied=False)
+
+                            # atualizamos o status no banco.
                             l_m.status = nt_s["StepStatus"]
                             l_m.dt_updated = datetime.utcnow()
-                            
 
-                            # verifica se a posicao é um target.
+                            # verifica se finalizou em posicao de buffer.
+                            # nao nos preocupamos em setar no navithor, pois quando agv descarrega ele ja seta como ocupado.
                             target_pos = int(nt_s["CurrentTargetId"])
                             if nt_s["StepStatus"]=="Complete":
 
