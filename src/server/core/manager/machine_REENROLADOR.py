@@ -24,8 +24,13 @@ class REENROLADOR:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA"]
         steps.insert(StepType.Pickup, tag_load)
 
+<<<<<<< HEAD
         # descarrega pallete cheio no buffer. 
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5,6,7 ])
+=======
+        # descarreta pallete cheio no buffer.
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
+>>>>>>> origin/main
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             return None
@@ -42,7 +47,11 @@ class REENROLADOR:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
+<<<<<<< HEAD
         tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+=======
+        tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[5, ])
+>>>>>>> origin/main
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             return None

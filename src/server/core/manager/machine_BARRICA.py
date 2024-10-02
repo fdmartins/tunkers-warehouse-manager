@@ -110,7 +110,11 @@ class BARRICA:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
+<<<<<<< HEAD
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[7, ])
+=======
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
+>>>>>>> origin/main
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             return None
@@ -127,7 +131,11 @@ class BARRICA:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
+<<<<<<< HEAD
         tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+=======
+        tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[5, ])
+>>>>>>> origin/main
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             return None

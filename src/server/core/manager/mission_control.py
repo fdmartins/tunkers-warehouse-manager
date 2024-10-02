@@ -210,6 +210,7 @@ class MissionControl:
             if btn_call.id_machine in [6150,6171,6170,6164,6162,6161,6159,6158,6137]:
                 if btn_call.action_type=="ABASTECE":
                     # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+<<<<<<< HEAD
                     steps = self.machine_capacapa.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
 
                 elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
@@ -231,11 +232,38 @@ class MissionControl:
                 elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
                     # retira palete incompleto na saida.
                     steps = self.machine_capacapa.retira_palete_incompleto(btn_call)
+=======
+                    steps = self.machine_barrica.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_barrica.retira_carretel_nao_conforme(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="ERRADO":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_barrica.retira_carretel_errado(btn_call)
+
+                elif btn_call.action_type=="ABASTECE_ENTRADA":
+                    # leva carretel na entrada da maquina, mas nao retira vazio.
+                    steps = self.machine_barrica.so_abastece_carretel(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
+                    # retira palete completo na saida.
+                    steps = self.machine_barrica.retira_palete(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
+                    # retira palete incompleto na saida.
+                    steps = self.machine_barrica.retira_palete_incompleto(btn_call)
+>>>>>>> origin/main
 
                 #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
                     # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
                     # carrega pallete incompleto na saida.
+<<<<<<< HEAD
                 #    steps = self.machine_capacapa.abastece_palete_incompleto(btn_call)
+=======
+                #    steps = self.machine_barrica.abastece_palete_incompleto(btn_call)
+>>>>>>> origin/main
                     
                 else:
                     self.logger.error(f"Acao da botoeira invalida {btn_call.action_type}")
