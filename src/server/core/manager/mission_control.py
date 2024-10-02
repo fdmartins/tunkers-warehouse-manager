@@ -1,12 +1,16 @@
 from threading import Thread
 import time
-
+from core.models import History
 from ..models.mission import Mission
 
 from .steps import STEPS
 
 from .machine_SAMPS import SAMPS
 from .machine_RETROFI import RETROFI
+from .machine_REENROLADOR import REENROLADOR
+from .machine_SPIDER import SPIDER
+from .machine_BARRICA import BARRICA
+from .machine_CAPACAPA import CAPACAPA
 
 from ..protocols.defines import StepType
 from ..models.buttons import ButtonCall
@@ -29,7 +33,10 @@ class MissionControl:
 
         self.machine_retrofi = RETROFI(self.db , self.buffers)
         self.machine_samps = SAMPS(self.db , self.buffers)
-        
+        self.machine_reenrolador = REENROLADOR(self.db , self.buffers)
+        self.machine_spider = SPIDER(self.db , self.buffers)
+        self.machine_barrica = BARRICA(self.db , self.buffers)
+        self.machine_capacapa = CAPACAPA(self.db , self.buffers)
 
         # inicia thread.
         flask_thread = Thread(target=self.run_loop)
@@ -41,15 +48,16 @@ class MissionControl:
     def run_loop(self):
         time.sleep(1)
         while True:
-            try:
-                with app.app_context():
+            with app.app_context():
+                try:
                     self.run()
-                    time.sleep(5)
-            except Exception as e:
-                self.logger.error(f"ERRO GERAL: {e}")
-                time.sleep(10)
+                    time.sleep(2)
+                except Exception as e:
+                    self.logger.error(f"ERRO GERAL: {e}")
+                    History.error("SISTEMA", f"{e}")
+                    time.sleep(10)
 
-            
+                
     def saveSteps(self, id_local, id_server, steps):
         
         for id_step in range(len(steps)):
@@ -80,6 +88,8 @@ class MissionControl:
         
             steps = None
 
+            #### AREA A #####
+
             if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489]:
                 # maquina RETRIFILA
                 if btn_call.action_type=="ABASTECE":
@@ -94,6 +104,8 @@ class MissionControl:
                     # carretel cheio na entrada e retira carretel vazio
                     steps = self.machine_retrofi.abastece_carretel_vazio(btn_call)      
 
+
+            #### AREA B #####
 
             if btn_call.id_machine in [6146,6155,6148,6151,6144]:
                 # maquinas SAMPS
@@ -131,10 +143,108 @@ class MissionControl:
                     # TODO - cancelamos o chamado
                      
 
+            #### AREA C - REENROLADOR #####
+
+            if btn_call.id_machine in [6066,6067]:
+                if btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
+                    # retira palete completo na saida.
+                    steps = self.machine_reenrolador.retira_palete(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
+                    # retira palete incompleto na saida.
+                    steps = self.machine_reenrolador.retira_palete_incompleto(btn_call)
+
+
+            #### AREA D - SPIDER #####
+
+            if btn_call.id_machine in [2015]:
+                if btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
+                    # retira palete completo na saida.
+                    steps = self.machine_spider.retira_palete(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
+                    # retira palete incompleto na saida.
+                    steps = self.machine_spider.retira_palete_incompleto(btn_call)
+                else:
+                    self.logger.error(f"Acao da botoeira invalida {btn_call.action_type}")
+                    # TODO - cancelamos o chamado
+
+            #### AREA E - BARRICA #####
+
+            if btn_call.id_machine in [6169,6023,6168]:
+                if btn_call.action_type=="ABASTECE":
+                    # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+                    steps = self.machine_barrica.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_barrica.retira_carretel_nao_conforme(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="ERRADO":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_barrica.retira_carretel_errado(btn_call)
+
+                elif btn_call.action_type=="ABASTECE_ENTRADA":
+                    # leva carretel na entrada da maquina, mas nao retira vazio.
+                    steps = self.machine_barrica.so_abastece_carretel(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
+                    # retira palete completo na saida.
+                    steps = self.machine_barrica.retira_palete(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
+                    # retira palete incompleto na saida.
+                    steps = self.machine_barrica.retira_palete_incompleto(btn_call)
+
+                #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
+                    # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
+                    # carrega pallete incompleto na saida.
+                #    steps = self.machine_barrica.abastece_palete_incompleto(btn_call)
+                    
+                else:
+                    self.logger.error(f"Acao da botoeira invalida {btn_call.action_type}")
+                    # TODO - cancelamos o chamado
+
+            #### AREA F - CAPA CAPA #####
+
+            if btn_call.id_machine in [6150,6171,6170,6164,6162,6161,6159,6158,6137]:
+                if btn_call.action_type=="ABASTECE":
+                    # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+                    steps = self.machine_barrica.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_barrica.retira_carretel_nao_conforme(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="ERRADO":
+                    # retira carretel na entrada da maquina
+                    steps = self.machine_barrica.retira_carretel_errado(btn_call)
+
+                elif btn_call.action_type=="ABASTECE_ENTRADA":
+                    # leva carretel na entrada da maquina, mas nao retira vazio.
+                    steps = self.machine_barrica.so_abastece_carretel(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
+                    # retira palete completo na saida.
+                    steps = self.machine_barrica.retira_palete(btn_call)
+
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
+                    # retira palete incompleto na saida.
+                    steps = self.machine_barrica.retira_palete_incompleto(btn_call)
+
+                #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
+                    # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
+                    # carrega pallete incompleto na saida.
+                #    steps = self.machine_barrica.abastece_palete_incompleto(btn_call)
+                    
+                else:
+                    self.logger.error(f"Acao da botoeira invalida {btn_call.action_type}")
+                    # TODO - cancelamos o chamado
+
 
             # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
             # Segundo ademilson, o navithor garante sequenciamento de trafego, então vamos ignorar esse trtamento no momento.
-
+            # TODO
 
             if steps==None:
                 self.logger.info("Nenhuma missão a ser enviada.")

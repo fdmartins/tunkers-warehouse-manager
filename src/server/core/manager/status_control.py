@@ -1,7 +1,7 @@
 from threading import Thread
 
 from ..models.mission import Mission
-
+from core.models import History
 from ..protocols.navithor import Navithor
 from ..models.buttons import ButtonCall, ButtonStatus
 import time
@@ -21,8 +21,7 @@ class StatusControl:
         self.comm = comm
 
         self.last_token_navithor_update = None
-
-        self.last_positions = ""
+        self.last_db_clean = None
 
         # inicia thread.
         flask_thread = Thread(target=self.run_loop)
@@ -34,19 +33,60 @@ class StatusControl:
     def run_loop(self):
         time.sleep(1)
         while True:
-            try:
-                with app.app_context():
+            with app.app_context():
+                try:
+                    self.cleanDB()
+                    self.checkButtonStatus()
+
                     self.mirrorBufferPositionsToNavithor()
                     self.checkAuthTokenNavithor()
                     
-                    
-                    self.checkButtonStatus()
                     self.checkMissionStatus()
-                    time.sleep(5)
-            except Exception as e:
-                self.logger.error(f"ERRO GERAL: {e}")
-                time.sleep(10)
 
+                    
+
+                    time.sleep(5)
+                except Exception as e:
+                    self.logger.error(f"ERRO GERAL: {e}")
+                    History.error("SISTEMA", f"{e}")
+                    time.sleep(10)
+
+
+    def cleanDB(self):
+        # limpamos dados antigos do banco.
+        
+        if self.last_db_clean==None or (datetime.now() - self.last_db_clean) > timedelta(hours=24):
+            self.logger.info("Removendo dados antigos do Banco de Dados...")
+
+            one_day_ago = datetime.now() - timedelta(days=1)
+            seven_day_ago = datetime.now() - timedelta(days=7)
+            month_ago = datetime.now() - timedelta(days=30)
+
+            # chamados botoeiras.
+            records_to_delete = ButtonCall.query.filter(ButtonCall.dt_creation < seven_day_ago).all()
+            for record in records_to_delete:
+                self.db.session.delete(record)
+
+            # historico
+            records_to_delete = History.query.filter(History.level=="ERRO" , History.dt_created < one_day_ago).all()
+            for record in records_to_delete:
+                self.db.session.delete(record)
+
+            records_to_delete = History.query.filter(History.level!="ERRO", History.dt_created < month_ago).all()
+            for record in records_to_delete:
+                self.db.session.delete(record)
+
+            # missoes (steps)
+            #print(one_day_ago)
+            records_to_delete = Mission.query.filter(Mission.dt_created < one_day_ago).all()
+            for record in records_to_delete:
+                #print(record)
+                self.db.session.delete(record)
+
+            # Commit para aplicar as mudanças no banco de dados
+            self.db.session.commit()
+
+            self.last_db_clean = datetime.now()
 
     def checkAuthTokenNavithor(self):
         # o token tem tempo de validade.
@@ -67,12 +107,14 @@ class StatusControl:
             self.db.session.commit()  # Atualiza o banco de dados
 
             if previous_status_message!=device.status_message:
-                self.logger.error(f"Dispositivo {device.ip_device} está OFFLINE.")
+                History.error("BOTOEIRA", f"Botoeira {device.ip_device} está OFFLINE - REDE OK?")
+                self.logger.error(f"Botoeira {device.ip_device} está OFFLINE.")
         else:
             device.status_message = "ONLINE"
             self.db.session.commit()  
 
             if previous_status_message!=device.status_message:
+                History.info("BOTOEIRA", f"Botoeira {device.ip_device} voltou comunicar")
                 self.logger.info(f"Dispositivo {device.ip_device} está ONLINE.")
 
         # Verificar se a diferença entre life_sequence e life_previous_sequence é maior que 1 
@@ -85,7 +127,8 @@ class StatusControl:
         #logging.warning(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
 
         if device.life_sequence - device.life_previous_sequence > 1:
-            self.logger.warning(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
+            History.error("BOTOEIRA", f"Sequencia LIFE ATRASADA {device.ip_device} - REDE OK? ")
+            self.logger.error(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
 
 
 
@@ -174,6 +217,10 @@ class StatusControl:
                                     if nt_s["StepType"]=="Pickup":
                                         # retirou. setamos buffer vazio.
                                         self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=False)
+
+                                        # auto limpeza do sku com rua...
+                                        self.logger.info("Verificando necessidade de liberação da rua para novo sku...")
+                                        self.buffers.clear_sku_row_with_no_occupation()
 
                                     if nt_s["StepType"]=="Dropoff": 
                                         # colocou. setamos buffer ocupado.

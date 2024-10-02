@@ -9,8 +9,9 @@ from sqlalchemy import desc
 
 logger = logging.getLogger(__name__)
 
-def generate_md5_token(username):
+def generate_md5(username):
     return hashlib.md5(username.encode()).hexdigest()
+
 
 @app.route('/v1/users')
 def test_users():
@@ -20,11 +21,11 @@ def test_users():
 @app.route('/v1/users/login', methods=['POST', 'OPTIONS'])
 def login():
     data = request.get_json()
-
-    user = User.query.filter_by(username=data['username'], password=data['password']).first()
+    print(generate_md5(data['password']))
+    user = User.query.filter_by(username=data['username'], password=generate_md5(data['password']) ).first()
 
     if user:
-        token = generate_md5_token(user.username + str(datetime.datetime.now()))
+        token = generate_md5(user.username + str(datetime.datetime.now()))
         user.token = token
         user.token_date = datetime.datetime.now()
         db.session.commit()
@@ -86,7 +87,7 @@ def create_user(logged_user):
     data = request.get_json()
     if User.query.filter_by(username=data['username']).first():
         return jsonify({'status':False, 'message': 'Ja existe alguem com este login'}), 200
-    new_user = User(username=data['username'], password=data['password'], roles=data['roles'])
+    new_user = User(username=data['username'], password=generate_md5(data['password']), roles=data['roles'])
     db.session.add(new_user)
     db.session.commit()
 
@@ -102,7 +103,7 @@ def update_password(logged_user):
     user = User.query.filter_by(id=data['user_id']).first()
     if not user:
         return jsonify({'status':False, 'message': 'Usuario Nao Encontrado'}), 200
-    user.password = data['new_password']
+    user.password = generate_md5(data['new_password'])
     db.session.commit()
 
     History.info("Sistema", f"Operador [{logged_user.username}] trocou a senha de [{user.username}]")
