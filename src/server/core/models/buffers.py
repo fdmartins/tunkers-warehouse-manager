@@ -149,6 +149,21 @@ class Buffer:
 
             
         return free_pos_id, free_area_id 
+    
+    def clear_sku_row_with_no_occupation(self):
+        # buscamos por todos skus cadastrados no banco...
+        # buscamos por todas posicoes de cada sku. Se nao existe posicao ocupada, removemos o sku da rua.
+
+        rows = BufferSKURow.query.filter_by(fixed=0).all()
+        for r in rows:
+            re = BufferPositions.query.filter_by(area_id=r.area_id, row_id=r.row_id).all()
+            count = len(re)
+            self.logger.debug(f"Buffer {r.area_id} Rua {r.row_id} com SKU {r.sku} - quantidade de produtos: {count}")
+            if count==0:
+                self.logger.info(f"Liberando rua {r.row_id} do buffer {r.area_id} - todos produto desta rua foram retirados.")
+                db.session.delete(r)
+
+        db.session.commit()
 
     def get_buffer_by_id(self, area_id):
         # retorna apenas a estrutura, sem status das posicoes.
@@ -204,8 +219,13 @@ class Buffer:
             # Tenta encontrar a entrada existente para o area_id e row_id
             buffer_row = BufferSKURow.query.filter_by(area_id=area_id, row_id=row_id).first()
 
+            if buffer_row:
+                if buffer_row.fixed==1:
+                    return False, "Esta posição é protegida. Não pode trocar o SKU."
+
             if sku is None:
                 if buffer_row:
+                    
                     # Se o registro existe e o SKU é None, remove o registro
 
                     # remove todas ocupacoes associadas.
@@ -217,6 +237,8 @@ class Buffer:
                     # remove o registro.
                     db.session.delete(buffer_row)
             else:
+                
+
                 if buffer_row:
                     # Se existir, atualiza o SKU e o horário de ocupação
                     buffer_row.sku = sku
@@ -233,11 +255,11 @@ class Buffer:
             
             # Commit para salvar as alterações
             db.session.commit()
-            return True
+            return True,""
 
         except Exception as e:
             logging.error(e)
-            return False
+            return False, str(e)
         
     def is_position_buffer(self, pos_id):
         for area_id, buffer in self.buffers.items():
@@ -304,7 +326,7 @@ class BufferSKURow(db.Model):
     row_id = db.Column(db.Integer, nullable=False)   
     sku = db.Column(db.String(32), nullable=False)  
     dt_occupation = db.Column(db.DateTime, default=datetime.utcnow) # horário que essa fila assumiu esse sku pela primeira vez.
-
+    fixed = db.Column(db.Integer, default=0)   # define se é uma rua editavel.(no banco)
     
 
 

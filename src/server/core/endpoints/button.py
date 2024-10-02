@@ -100,9 +100,6 @@ def create_call():
                 gauge = ""
                 product = ""
             
-            # Validar se todos os campos estão presentes
-            #if not all([ip_device, message_type, material_type, action_type, situation, id_machine, bitola, product]):
-            #    return jsonify({'error': 'Faltam dados necessários!'}), 400
 
             new_call = ButtonCall(
                 ip_device=ip_device,
@@ -125,6 +122,9 @@ def create_call():
 
             # Verificamos se existe algum chamado pendente para a mesma maquina.
             # TODO
+
+
+
             if False:
                 logger.warning(f"Ação NEGADA. Já existe chamado. ")
                 return jsonify({'status': False, "message":f"NEGADO. Ja existe chamado." }), 200
@@ -138,6 +138,7 @@ def create_call():
 
 
             logger.info(f"Ação aceita. Cadastrada no Banco.")
+
             return jsonify({'status': True, "message":f"Confirmado!" }), 200
 
         except Exception as e:

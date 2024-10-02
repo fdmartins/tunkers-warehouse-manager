@@ -50,14 +50,14 @@ def buffer_sku_update(id_buffer, id_row, logged_user):
     id_row = int(id_row)
     data = request.get_json()
     
-    status = buffer_service.set_sku_to_row(id_buffer, id_row, data["sku"])
+    status, msg = buffer_service.set_sku_to_row(id_buffer, id_row, data["sku"])
 
     History.info("Sistema", f"Operador [{logged_user.username}] alterou SKU do buffer {id_buffer} linha {id_row} para {data['sku']} ")
 
     if status:
         return  jsonify({'status': status, "mensage": "Atualizado com sucesso" }), 200
     
-    return jsonify({'status': status, "mensage": "Falhou na atualização!" }), 200
+    return jsonify({'status': status, "mensage": msg }), 200
 
 
 @app.route('/v1/buffers/<id_buffer>/update/position/<id_row>/<id_pos>', methods=['POST'])
