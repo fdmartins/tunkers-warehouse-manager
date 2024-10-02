@@ -12,11 +12,7 @@ class CAPACAPA:
 
 
         self.machine_positions = {
-<<<<<<< HEAD
             6150: {"POS_ENTRADA_CHEIO":670, "POS_ENTRADA_VAZIO":660, "POS_SAIDA_CHEIO":960  },
-=======
-            6150: {"POS_ENTRADA_CHEIO":620, "POS_ENTRADA_VAZIO":660, "POS_SAIDA_CHEIO":960  },
->>>>>>> origin/main
             6171: {"POS_ENTRADA_CHEIO":650, "POS_ENTRADA_VAZIO":640, "POS_SAIDA_CHEIO":940  },
             6170: {"POS_ENTRADA_CHEIO":630, "POS_ENTRADA_VAZIO":620, "POS_SAIDA_CHEIO":920  },
             6164: {"POS_ENTRADA_CHEIO":610, "POS_ENTRADA_VAZIO":600, "POS_SAIDA_CHEIO":900  },
@@ -121,11 +117,7 @@ class CAPACAPA:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
-<<<<<<< HEAD
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[7, ])
-=======
-        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
->>>>>>> origin/main
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             return None
@@ -142,11 +134,7 @@ class CAPACAPA:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
-<<<<<<< HEAD
         tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
-=======
-        tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[5, ])
->>>>>>> origin/main
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             return None
