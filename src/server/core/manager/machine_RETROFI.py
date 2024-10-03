@@ -92,4 +92,19 @@ class RETROFI:
     
 
     def abastece_carretel_vazio(self, btn_call):
-        pass
+
+        steps = STEPS()
+
+        # carrega carretel vazio no buffer.
+        tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        if tag_load==None:
+            self.logger.error(f"Não temos carretel vazio disponivel! ")
+            return None
+
+        steps.insert(StepType.Pickup, tag_load)
+
+        # descarrega carretel vazio na maquina.
+        tag_unload = self.machine_positions[btn_call.id_machine]["POS_VAZIO"]
+        steps.insert(StepType.Dropoff, tag_unload)
+
+        return steps.getSteps()

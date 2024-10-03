@@ -21,7 +21,7 @@ def test_users():
 @app.route('/v1/users/login', methods=['POST', 'OPTIONS'])
 def login():
     data = request.get_json()
-    print(generate_md5(data['password']))
+   
     user = User.query.filter_by(username=data['username'], password=generate_md5(data['password']) ).first()
 
     if user:

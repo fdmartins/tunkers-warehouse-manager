@@ -10,7 +10,3 @@ class EXPEDICAO:
         self.buffers = buffers
         
     
-        self.machine_positions = {
-            6146: {"POS_ENTRADA_CHEIO":460, "POS_ENTRADA_VAZIO":450, "POS_SAIDA_CHEIO":340  },
-            6155: {"POS_ENTRADA_CHEIO":440, "POS_ENTRADA_VAZIO":430, "POS_SAIDA_CHEIO":330  },
-        }
