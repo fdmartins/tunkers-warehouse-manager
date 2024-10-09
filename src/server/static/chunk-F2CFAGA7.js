@@ -1,0 +1,1 @@
+import"./chunk-2VMXMS7J.js";var t=[{path:"",loadComponent:()=>import("./chunk-RCEHC7SH.js").then(o=>o.TemplateComponent),children:[{path:"",loadChildren:()=>import("./chunk-DIZ4ZDH5.js").then(o=>o.routes)},{path:"login",loadComponent:()=>import("./chunk-X32SGGVQ.js").then(o=>o.LoginComponent)}]}];export{t as routes};
