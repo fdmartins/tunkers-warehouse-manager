@@ -25,12 +25,13 @@ class SPIDER:
 
         # descarreta pallete cheio no buffer.
         buffers_allowed = [5,6,7 ]
-        if btn_call.sku in ["A DEFINIR"]:
+        if btn_call.sku in ["123456"]:
              buffers_allowed = [8, ] # regiao L
 
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=buffers_allowed)
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
+            btn_call.info = f"Sem espaco livre no buffer"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 
@@ -48,6 +49,7 @@ class SPIDER:
         tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
+            btn_call.info = f"Sem espaco livre no buffer incompletos"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 

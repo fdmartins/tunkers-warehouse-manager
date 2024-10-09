@@ -22,6 +22,8 @@ class EMBALAGEM_MIMI:
         tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[5,6,7, ])
         if tag_load==None:
             self.logger.error(f"Não existe pallet com sku {btn_call.sku} no buffer! ")
+            btn_call.info = f"Sem sku {btn_call.sku} no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
 
         steps.insert(StepType.Pickup, tag_load)
@@ -49,6 +51,8 @@ class EMBALAGEM_MIMI:
         tag_unload, area_id_sku = self.buffers.get_free_pos(sku, buffers_allowed=buffers_allowed)
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel na expedicao!")
+            btn_call.info = f"Sem espaco na expedicao"
+            #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         
         steps.insert(StepType.Dropoff, tag_unload)

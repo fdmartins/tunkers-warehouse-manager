@@ -36,6 +36,8 @@ class RETROFI:
         tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_load==None:
             self.logger.error(f"Não temos carretel vazio disponivel! ")
+            btn_call.info = f"Sem carretel vazio no buffer"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
 
         steps.insert(StepType.Pickup, tag_load)
@@ -52,6 +54,8 @@ class RETROFI:
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
+            btn_call.info = f"Sem espaco livre no buffer de carretel vazio"
+            #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -68,6 +72,8 @@ class RETROFI:
         tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_load==None:
             self.logger.error(f"Não temos carretel vazio disponivel! ")
+            btn_call.info = f"Sem carretel vazio disponivel"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
 
         steps.insert(StepType.Pickup, tag_load)
@@ -84,6 +90,8 @@ class RETROFI:
         tag_unload, area_id_sku = self.buffers.get_free_pos("NÃO CONFORME", buffers_allowed=[3, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
+            btn_call.info = f"Sem espaco para carretel vazio"
+            #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -99,6 +107,8 @@ class RETROFI:
         tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_load==None:
             self.logger.error(f"Não temos carretel vazio disponivel! ")
+            btn_call.info = f"Sem carretel vazio no buffer"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
 
         steps.insert(StepType.Pickup, tag_load)

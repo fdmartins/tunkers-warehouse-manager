@@ -9,8 +9,8 @@ import core
 
 
 port = 8080
-DEBUG = True
-VERSION = "20240925"
+DEBUG = False
+VERSION = "20241009"
 
 # Function to get the local IP address
 def get_local_ip():

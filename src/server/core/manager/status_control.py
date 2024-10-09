@@ -204,6 +204,29 @@ class StatusControl:
                                     self.logger.warning(f"Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
                                     self.comm.set_position_occupation(l_m.position_target, occupied=False)
 
+
+                                # verificamos necessidade de setar o sku no buffer.
+                                # verifica se agv a caminho para descaregar no buffer.
+                                if self.buffers.is_position_buffer(l_m.position_target):
+
+                                    # verificamos qual sku é desta missao.
+                                    actual_call = ButtonCall.query.get(l_m.id_local)
+                                    sku = None
+                                    if actual_call!=None:
+                                        sku = actual_call.sku
+
+                                        # verifica se a rua ja tem o sku certo.
+                                        buffer_id, row_id = self.buffers.find_area_and_row_of_position(l_m.position_target)
+
+                                        sku_in_buffer = self.buffers.get_sku_from_row(buffer_id, row_id)
+
+                                        if sku!=sku_in_buffer:
+                                            self.logger.info(f"SETANDO SKU DO BUFFER DE {sku_in_buffer} para {sku}")
+                                            if sku_in_buffer!=None:
+                                                self.logger.error(f"INESPERADO!! SKU DO BUFFER MUDOU DE {sku_in_buffer} para {sku}")
+
+                                            self.buffers.set_sku_to_row(buffer_id, row_id, sku)
+
                             # atualizamos o status no banco.
                             l_m.status = nt_s["StepStatus"]
                             l_m.dt_updated = datetime.utcnow()
@@ -213,10 +236,11 @@ class StatusControl:
                             target_pos = int(nt_s["CurrentTargetId"])
                             if nt_s["StepStatus"]=="Complete":
 
-                                if self.buffers.is_position_buffer(target_pos):
+                                if self.buffers.is_position_buffer(l_m.position_target):
+
                                     if nt_s["StepType"]=="Pickup":
                                         # retirou. setamos buffer vazio.
-                                        self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=False)
+                                        self.buffers.set_position_ocupation_by_tag_pos(target_pos,  occupied=False)
 
                                         # auto limpeza do sku com rua...
                                         self.logger.info("Verificando necessidade de liberação da rua para novo sku...")
@@ -225,6 +249,8 @@ class StatusControl:
                                     if nt_s["StepType"]=="Dropoff": 
                                         # colocou. setamos buffer ocupado.
                                         self.buffers.set_position_ocupation_by_tag_pos(target_pos, occupied=True)
+
+                                        
                                 else:
                                     self.logger.info(f"Passo da missão foi finalizada em na posição {target_pos} que não é buffer.")
 

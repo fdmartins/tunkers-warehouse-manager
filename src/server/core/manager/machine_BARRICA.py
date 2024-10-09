@@ -27,6 +27,8 @@ class BARRICA:
         tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[2, ])
         if tag_load==None:
             self.logger.error(f"Não existe carretel com sku {btn_call.sku} no buffer 2! ")
+            btn_call.info = f"Sem carretel sku {btn_call.sku} no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
 
         steps.insert(StepType.Pickup, tag_load)
@@ -43,6 +45,8 @@ class BARRICA:
         tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
+            btn_call.info = f"Sem vaga no buffer de carretel vazio"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -60,6 +64,8 @@ class BARRICA:
         tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
+            btn_call.info = f"Sem vaga no buffer de carretel vazio"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -77,6 +83,8 @@ class BARRICA:
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
         if tag_unload==None:
             self.logger.error(f"Não temos carretel vazio disponivel!")
+            btn_call.info = f"Sem carretel vazio no buffer"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         
         steps.insert(StepType.Dropoff, tag_unload)
@@ -90,6 +98,8 @@ class BARRICA:
         tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[2, ])
         if tag_load==None:
             self.logger.error(f"Não existe carretel com sku {btn_call.sku} no buffer 2! ")
+            btn_call.info = f"Sem carretel sku {btn_call.sku} no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
 
         steps.insert(StepType.Pickup, tag_load)
@@ -110,9 +120,11 @@ class BARRICA:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
-        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[7, ])
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5,6, 7, ])
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
+            btn_call.info = f"Sem posicao no buffer de pallet"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 
@@ -130,6 +142,8 @@ class BARRICA:
         tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
+            btn_call.info = f"Sem posicao no buffer de pallet"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 

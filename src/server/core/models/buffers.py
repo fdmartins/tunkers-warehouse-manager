@@ -104,13 +104,25 @@ class Buffer:
                         return item['pos'], ret.area_id
             
         return None, None
-    
+
+    def get_sku_from_row(self, area_id, row_id):
+        all_ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row_id).all()
+
+        if len(all_ret)!=0:
+            return all_ret[0].sku
+
+        return None
+
 
     def get_first_free_pos_in_row(self, area_id, row_id):
         row = self.get_row_positions(area_id, row_id)
         
         # encontramos a primeira ocorrência ao varrer a lista de trás para frente:
         ultima_livre = None, None
+
+        if row==None:
+            return ultima_livre
+
         for item in reversed(row):
             if item['occupied']==False:
                 ultima_livre = item['pos'], area_id
@@ -279,12 +291,15 @@ class Buffer:
 
     def set_position_ocupation_by_tag_pos(self, pos_id, occupied):
         self.logger.info(f"Marcando Posicao {pos_id} com occupied={occupied}")
+
         # descobrimos de qual area_id e row_id esta posicao pertence.
         area_id, row_id = self.find_area_and_row_of_position(pos_id)
+
         if area_id==None:
             self.logger.error(f"Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
             raise Exception("Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
         
+
         return self.set_position_occupation(area_id, row_id, pos_id, occupied)
 
 

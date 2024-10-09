@@ -31,6 +31,7 @@ def list_call():
             #'Bitola': c.gauge,
             #'Produto': c.product,
             'Status': c.mission_status,
+            'Info': c.info, 
             'Dt Chamada': c.dt_creation
         })
 

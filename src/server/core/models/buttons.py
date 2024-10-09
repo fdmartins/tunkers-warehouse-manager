@@ -34,6 +34,7 @@ class ButtonCall(db.Model):
     product = db.Column(db.String(50))          # product name
 
     mission_status = db.Column(db.String(50), nullable=False) 
+    info = db.Column(db.String(500)) 
 
     id_navithor = db.Column(db.Integer) # id de uma missao cadastrada no navithor.
 
@@ -54,6 +55,7 @@ class ButtonCall(db.Model):
                 f"product={self.product}, "
                 f"sku={self.sku}, "
                 f"mission_status={self.mission_status}, "
+                f"info={self.info}, "
                 f"id_navithor={self.id_navithor}, "
                 f"dt_creation={self.dt_creation})"
                 )

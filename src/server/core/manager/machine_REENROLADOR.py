@@ -28,6 +28,8 @@ class REENROLADOR:
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5,6,7 ])
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
+            btn_call.info = f"Sem espaco no buffer"
+            #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 
@@ -45,6 +47,8 @@ class REENROLADOR:
         tag_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
+            btn_call.info = f"Sem espaco livre buffer de incompletos"
+            #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 
