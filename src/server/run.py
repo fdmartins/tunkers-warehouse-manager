@@ -6,11 +6,11 @@ from threading import Thread
 import logging
 import time
 import core
-
+from logging.handlers import TimedRotatingFileHandler
 
 port = 8080
 DEBUG = False
-VERSION = "20241009"
+VERSION = "20241011"
 
 # Function to get the local IP address
 def get_local_ip():
@@ -75,7 +75,7 @@ def create_window(ip, port):
     button.pack(pady=10) 
 
     # Override the close button event to ask for confirmation
-   #window.protocol("WM_DELETE_WINDOW", lambda: on_closing(window))
+    window.protocol("WM_DELETE_WINDOW", lambda: on_closing(window))
     
 
     window.mainloop()
@@ -94,10 +94,10 @@ if __name__ == '__main__':
 
     # Configuração  do logger
     logging.basicConfig(
-        level=logging.DEBUG if DEBUG else logging.INFO,             
-        format=('%(asctime)-20s | %(name)-30s | %(levelname)-8s | %(message)-50s'),  # Formato do log
+        level=logging.DEBUG if DEBUG else logging.INFO,
+        format=('%(asctime)-20s | %(name)-30s | %(levelname)-8s | %(message)-50s'),
         handlers=[
-            logging.FileHandler('app.log'),
+            TimedRotatingFileHandler('app.log', when='midnight', interval=1, backupCount=15),  # Gera um arquivo por dia, mantem apenas os 15  dias.
             logging.StreamHandler()  # Envia as mensagens para o console
         ]
     )

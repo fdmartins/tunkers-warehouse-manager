@@ -225,6 +225,16 @@ class Buffer:
 
         return positions
 
+    def clear_all_positions_of_row(self, area_id, row_id):
+        self.logger.info(f"Limpando todas posicoes do buffer {area_id} rua {row_id}")
+        # remove todas ocupacoes associadas.
+        re = BufferPositions.query.filter_by(area_id=area_id, row_id=row_id).all()
+        for r in re:
+            self.logger.warning(f"Buffer {r.area_id}: Liberado rua {r.row_id} posicao {r.pos_id}")
+            db.session.delete(r)
+
+        
+
     def set_sku_to_row(self, area_id, row_id, sku):
 
         try:
@@ -233,23 +243,21 @@ class Buffer:
 
             if buffer_row:
                 if buffer_row.fixed==1:
+                    # podemos limpar as posicoes, mas nao trocar o sku!!
+                    self.clear_all_positions_of_row(area_id, row_id)
                     return False, "Esta posição é protegida. Não pode trocar o SKU."
 
             if sku is None:
+                self.logger.info(f"Setando Sku None para {area_id} {row_id}")
+
+                self.clear_all_positions_of_row(area_id, row_id)
+
                 if buffer_row:
-                    
-                    # Se o registro existe e o SKU é None, remove o registro
-
-                    # remove todas ocupacoes associadas.
-                    re = BufferPositions.query.filter_by(area_id=area_id, row_id=row_id).all()
-                    for r in re:
-                        self.logger.warning(f"Buffer {r.area_id}: Liberado rua {r.row_id} posicao {r.pos_id}")
-                        db.session.delete(r)
-
-                    # remove o registro.
+                    # remove o sku da rua.
                     db.session.delete(buffer_row)
+                   
             else:
-                
+                self.logger.info(f"Setando Sku {sku} para {area_id} {row_id}")
 
                 if buffer_row:
                     # Se existir, atualiza o SKU e o horário de ocupação
