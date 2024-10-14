@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from core import app
 import json
+import traceback
 
 class StatusControl:
     def __init__(self, db, buffers, comm):
@@ -48,6 +49,7 @@ class StatusControl:
                     time.sleep(5)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
+                    self.logger.error(traceback.format_exc())
                     History.error("SISTEMA", f"{e}")
                     time.sleep(10)
 
@@ -229,6 +231,7 @@ class StatusControl:
 
                             # atualizamos o status no banco.
                             l_m.status = nt_s["StepStatus"]
+                            l_m.agv = agv
                             l_m.dt_updated = datetime.utcnow()
 
                             # verifica se finalizou em posicao de buffer.

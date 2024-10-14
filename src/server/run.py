@@ -9,7 +9,7 @@ import core
 from logging.handlers import TimedRotatingFileHandler
 
 port = 8080
-DEBUG = False
+DEBUG = True
 VERSION = "20241011"
 
 # Function to get the local IP address

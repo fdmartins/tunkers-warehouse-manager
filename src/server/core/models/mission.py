@@ -9,6 +9,8 @@ class Mission(db.Model):
 
     status = db.Column(db.String(20), nullable=False)
 
+    agv = db.Column(db.String(5))
+
     step_id = db.Column(db.Integer)  # id do passo, comecando de zero.
     step_type = db.Column(db.String(20))  #StepTypeEnum
     position_target = db.Column(db.Integer) # CurrentTargetId - assumimos sempre apenas 1.

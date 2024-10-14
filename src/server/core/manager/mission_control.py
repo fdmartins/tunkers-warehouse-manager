@@ -80,6 +80,20 @@ class MissionControl:
 
         self.db.session.commit()
 
+    def isStepsAllowed(self, steps):
+        # verifica se os proximos passos ja tem alguma posicao em execucao enviado ao navithor.
+        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
+
+        positions_steps = []
+        for s in steps:
+            positions_steps.append(s["AllowedTargets"][0]["Id"])
+
+        for l_m in local_missions: 
+            if l_m.position_target in positions_steps:
+                return False
+
+        return True 
+
     def run(self):
         
         # verificamos chamados botoeiras.
@@ -97,11 +111,11 @@ class MissionControl:
 
             if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489]:
                 # maquina RETRIFILA
-                if btn_call.action_type=="ABASTECE":
+                if btn_call.action_type=="RETIRA" and btn_call.situation!="NAO_CONFORME":
                     # carretel cheio na entrada e retira carretel vazio
                     steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_cheio(btn_call)    
 
-                elif btn_call.action_type=="NAO_CONFORME":
+                elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
                     # carretel cheio nao conforme e retira carretel vazio
                     steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_nao_conforme(btn_call)   
 
@@ -297,8 +311,12 @@ class MissionControl:
                 btn_call.mission_status = "FINALIZADO_ERRO"
 
             # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
-            # Segundo ademilson, o navithor garante sequenciamento de trafego, então vamos ignorar esse trtamento no momento.
-            # TODO
+            # varremos steps, verificamos se alguma posicao ja foi enviada ao navithor e ainda esta com status diferente de Completed.
+            if self.isStepsAllowed(steps)==False:
+                btn_call.info = f"Aguardando finalizar missão anterior com posições coincidentes..."
+                self.logger.warning("Já existe missão para mesma posição, aguardamos...")
+                steps = None
+
 
             if steps==None:
                 self.logger.info("Nenhuma missão a ser enviada.")

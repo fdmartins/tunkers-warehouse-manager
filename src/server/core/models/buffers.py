@@ -139,8 +139,21 @@ class Buffer:
 
         ret_all = BufferSKURow.query.filter_by(sku=sku).all()
 
+        for ret in ret_all:
+            # este sku ja tem em alguma rua...
+            free_pos_id_test, free_area_id_test = self.get_first_free_pos_in_row(ret.area_id, ret.row_id)
 
-        if len(ret_all)==0:
+            # verificamos se esta em um buffer id permitido.
+            if free_pos_id_test!=None and free_area_id_test in buffers_allowed:
+                self.logger.debug(f"Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
+                free_pos_id = free_pos_id_test
+                free_area_id = free_area_id_test
+                break
+
+
+        #self.logger.debug(f"{len(ret_all)} {free_area_id}")
+
+        if len(ret_all)==0 or free_area_id==None:
             self.logger.debug("não existe ainda uma rua com este sku, pegamos uma rua livre e a dedicamos para o sku")
             for area_id, buffer in self.buffers.items():
                 for area_id in buffers_allowed:
@@ -154,10 +167,7 @@ class Buffer:
                                 return free_pos_id, free_area_id 
             
         
-        for ret in ret_all:
-            free_pos_id, free_area_id = self.get_first_free_pos_in_row(ret.area_id, ret.row_id)
-            if free_pos_id!=None and free_area_id in buffers_allowed:
-                break
+        
 
             
         return free_pos_id, free_area_id 

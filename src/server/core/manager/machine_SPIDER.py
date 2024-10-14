@@ -25,7 +25,7 @@ class SPIDER:
 
         # descarreta pallete cheio no buffer.
         buffers_allowed = [5,6,7 ]
-        if btn_call.sku in ["123456"]:
+        if btn_call.sku in ["40479815"]:
              buffers_allowed = [8, ] # regiao L
 
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=buffers_allowed)

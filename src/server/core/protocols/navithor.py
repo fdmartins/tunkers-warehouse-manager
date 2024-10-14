@@ -7,6 +7,9 @@ class Navithor:
     def __init__(self, ip="127.0.0.1", port=1234):
         self.logger = logging.getLogger(__name__)
 
+        self.fake = False
+        self.fake_pos_occupation = {}
+
         self.ip = ip
         self.port = port
 
@@ -20,6 +23,8 @@ class Navithor:
             self.logger.error("Falha atualizacao token autenticacao navithor: " + str(err))
 
     def call_api(self, endpoint, payload={}, headers=None, method="POST"):
+
+        if self.fake: return {}
 
         if headers==None:
             headers = {
@@ -53,11 +58,12 @@ class Navithor:
     def checkVersion(self):
         endpoint = "/api/getVersion"
  
-        return self.call_api(endpoint)
+        return self.call_api(endpoint, method="GET")
 
 
     def updateAuthToken(self):
-        #return
+        if self.fake: return False
+
         endpoint = "/api/token"
 
         payload = 'username=navitec&password=navitrol&grant_type=password'
@@ -77,7 +83,8 @@ class Navithor:
 
     def send_mission(self, id_local, steps):
         self.logger.info("Enviando Missão ao Navithor...")
-        #return id_local
+        
+        if self.fake: return id_local
         
         endpoint = "/api/missioncreate"
 
@@ -142,6 +149,10 @@ class Navithor:
     def set_position_occupation(self, position, occupied):
         self.logger.info(f"Marcando posicao {position} com ocupacao={occupied}...")
 
+        if self.fake: 
+            self.fake_pos_occupation.setdefault(position, occupied)
+            return True
+
         endpoint = "/api/LoadAtLocation" 
         
 
@@ -159,7 +170,13 @@ class Navithor:
             self.logger.error(f"NAVITHOR NAO RETORNO SUCESSO AO MUDAR STATUS DE OCUPACAO DA POSICAO {position}")
 
     def get_position_occupation(self, position):
-        self.logger.debug(f"Buscando status de ocupacao da posicao {position}...")
+        #self.logger.debug(f"Buscando status de ocupacao da posicao {position}...")
+
+        if self.fake: 
+            if position not in self.fake_pos_occupation:
+                return False
+            
+            return self.fake_pos_occupation[position]
 
         endpoint = "/api/LoadAtLocation" 
         

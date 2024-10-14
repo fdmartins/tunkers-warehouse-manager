@@ -33,7 +33,7 @@ class RETROFI:
         steps = STEPS()
 
         # carrega carretel vazio no buffer.
-        tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_load==None:
             self.logger.error(f"Não temos carretel vazio disponivel! ")
             btn_call.info = f"Sem carretel vazio no buffer"
@@ -53,8 +53,8 @@ class RETROFI:
         # descarrega carretel CHEIO no buffer. (id 2)
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
         if tag_unload==None:
-            self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
-            btn_call.info = f"Sem espaco livre no buffer de carretel vazio"
+            self.logger.error(f"Não existe vagas para descarregar carretel cheio!")
+            btn_call.info = f"Sem espaco livre no buffer de carretel cheio"
             #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
@@ -69,7 +69,7 @@ class RETROFI:
         steps = STEPS()
 
         # carrega carretel vazio no buffer.
-        tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_load==None:
             self.logger.error(f"Não temos carretel vazio disponivel! ")
             btn_call.info = f"Sem carretel vazio disponivel"
@@ -89,8 +89,8 @@ class RETROFI:
         # descarrega carretel NAO CONFORME no buffer. (id 3)
         tag_unload, area_id_sku = self.buffers.get_free_pos("NÃO CONFORME", buffers_allowed=[3, ])
         if tag_unload==None:
-            self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
-            btn_call.info = f"Sem espaco para carretel vazio"
+            self.logger.error(f"Não existe vagas para descarregar carretel nao conforme!")
+            btn_call.info = f"Sem espaco para carretel nao conforme"
             #btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
@@ -104,7 +104,7 @@ class RETROFI:
         steps = STEPS()
 
         # carrega carretel vazio no buffer.
-        tag_load, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
         if tag_load==None:
             self.logger.error(f"Não temos carretel vazio disponivel! ")
             btn_call.info = f"Sem carretel vazio no buffer"
