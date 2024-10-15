@@ -313,10 +313,11 @@ class MissionControl:
 
             # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
             # varremos steps, verificamos se alguma posicao ja foi enviada ao navithor e ainda esta com status diferente de Completed.
-            if self.isStepsAllowed(steps)==False:
-                btn_call.info = f"Aguardando finalizar missão anterior com posições coincidentes..."
-                self.logger.warning("Já existe missão para mesma posição, aguardamos...")
-                steps = None
+            if steps!=None:
+                if self.isStepsAllowed(steps)==False:
+                    btn_call.info = f"Aguardando finalizar missão anterior com posições coincidentes..."
+                    self.logger.warning("Já existe missão para mesma posição, aguardamos...")
+                    steps = None
 
 
             if steps==None:
