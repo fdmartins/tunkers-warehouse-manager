@@ -119,7 +119,7 @@ class SAMPS:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
-        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5,6,7 ])
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             btn_call.info = f"Sem posicao livre no buffer! "

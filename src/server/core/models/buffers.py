@@ -315,7 +315,7 @@ class Buffer:
 
         if area_id==None:
             self.logger.error(f"Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
-            raise Exception("Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
+            raise Exception(f"Não encontrada posicao {pos_id} em nenhum buffer configurado!!")
         
 
         return self.set_position_occupation(area_id, row_id, pos_id, occupied)

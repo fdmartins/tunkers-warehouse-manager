@@ -177,7 +177,7 @@ class StatusControl:
             # passamos pelas missoes cadastradas no navithor...
             for nt_m in navithor_missions:
                 navithor_id = nt_m["Id"]
-                navithor_state = nt_m["State"] #StateEnum (estado geral da missao)
+                navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
                 local_id = int(nt_m["ExternalId"])
                 agv = nt_m["AssignedMachineId"]
                 current_step_index = nt_m["CurrentStepIndex"]
@@ -232,13 +232,18 @@ class StatusControl:
 
                             # atualizamos o status no banco.
                             l_m.status = nt_s["StepStatus"]
+                            if navithor_main_state=="Completed":
+                                l_m.info = ""
+                            else:
+                                l_m.info = navithor_main_state
+
                             l_m.agv = agv
                             l_m.dt_updated = datetime.utcnow()
 
                             # verifica se finalizou em posicao de buffer.
                             # nao nos preocupamos em setar no navithor, pois quando agv descarrega ele ja seta como ocupado.
                             target_pos = int(nt_s["CurrentTargetId"])
-                            if nt_s["StepStatus"]=="Complete":
+                            if nt_s["StepStatus"]=="Complete" and (navithor_main_state=="Executing" or navithor_main_state=="Completed"):
 
                                 if self.buffers.is_position_buffer(l_m.position_target):
 
@@ -264,6 +269,8 @@ class StatusControl:
                 if l_m.status=="Complete":
                     self.logger.error(f"O passo foi finalizado fora de ciclo! Ultimo status: {l_m.status}")
 
+
+               
                 l_m.status = "FINALIZADO"
 
                 # tambem setamos como finalizado no chamado da botoeira.
@@ -273,6 +280,18 @@ class StatusControl:
                 if button_call:
                     # Atualize o status da missão para "Concluido"
                     button_call.mission_status = "FINALIZADO"
+                    info_mission = ""
+                    info_call = ""
+
+                    if l_m.info!=None:
+                        info_mission = l_m.info
+                    if button_call.info!=None:
+                        info_call = button_call.info
+
+
+                    button_call.info = ' | '.join([info_mission, info_call])
+                    
+
 
         self.db.session.commit()
         

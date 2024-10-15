@@ -8,7 +8,7 @@ class Mission(db.Model):
     id_server = db.Column(db.Integer)
 
     status = db.Column(db.String(20), nullable=False)
-
+    info =  db.Column(db.String(100))
     agv = db.Column(db.String(5))
 
     step_id = db.Column(db.Integer)  # id do passo, comecando de zero.
