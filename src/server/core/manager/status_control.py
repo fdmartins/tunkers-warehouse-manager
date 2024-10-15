@@ -61,11 +61,12 @@ class StatusControl:
             self.logger.info("Removendo dados antigos do Banco de Dados...")
 
             one_day_ago = datetime.now() - timedelta(days=1)
-            seven_day_ago = datetime.now() - timedelta(days=7)
+            three_days_ago = datetime.now() - timedelta(days=3)
+            five_days_ago = datetime.now() - timedelta(days=5)
             month_ago = datetime.now() - timedelta(days=30)
 
             # chamados botoeiras.
-            records_to_delete = ButtonCall.query.filter(ButtonCall.dt_creation < seven_day_ago).all()
+            records_to_delete = ButtonCall.query.filter(ButtonCall.dt_creation < five_days_ago).all()
             for record in records_to_delete:
                 self.db.session.delete(record)
 
@@ -80,7 +81,7 @@ class StatusControl:
 
             # missoes (steps)
             #print(one_day_ago)
-            records_to_delete = Mission.query.filter(Mission.dt_created < one_day_ago).all()
+            records_to_delete = Mission.query.filter(Mission.dt_created < five_days_ago).all()
             for record in records_to_delete:
                 #print(record)
                 self.db.session.delete(record)

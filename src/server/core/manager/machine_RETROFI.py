@@ -87,7 +87,7 @@ class RETROFI:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarrega carretel NAO CONFORME no buffer. (id 3)
-        tag_unload, area_id_sku = self.buffers.get_free_pos("NÃO CONFORME", buffers_allowed=[3, ])
+        tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel nao conforme!")
             btn_call.info = f"Sem espaco para carretel nao conforme"
