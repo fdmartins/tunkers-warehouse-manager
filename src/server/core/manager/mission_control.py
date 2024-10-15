@@ -33,6 +33,7 @@ class MissionControl:
 
         self.buffers = buffer
 
+        # maquinas
         self.machine_retrofi = RETROFI(self.db , self.buffers)
         self.machine_samps = SAMPS(self.db , self.buffers)
         self.machine_reenrolador = REENROLADOR(self.db , self.buffers)
@@ -42,7 +43,7 @@ class MissionControl:
         self.machine_embalagem_mimi = EMBALAGEM_MIMI(self.db , self.buffers)
         self.machine_embalagem_k = EMBALAGEM_K(self.db , self.buffers)
 
-        # inicia thread.
+        # inicia thread de monitoramento de chamados.
         flask_thread = Thread(target=self.run_loop)
         flask_thread.daemon = True
         flask_thread.start()
@@ -110,7 +111,7 @@ class MissionControl:
             #### AREA A #####
 
             if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489]:
-                # maquina RETRIFILA
+                # maquina RETROFILA
                 if btn_call.action_type=="RETIRA" and btn_call.situation!="NAO_CONFORME":
                     # carretel cheio na entrada e retira carretel vazio
                     steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_cheio(btn_call)    
