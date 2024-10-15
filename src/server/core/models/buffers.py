@@ -272,14 +272,14 @@ class Buffer:
                 if buffer_row:
                     # Se existir, atualiza o SKU e o horário de ocupação
                     buffer_row.sku = sku
-                    buffer_row.dt_occupation = datetime.utcnow()
+                    buffer_row.dt_occupation = datetime.now()
                 else:
                     # Caso contrário, cria uma nova entrada
                     new_row = BufferSKURow(
                         area_id=area_id,
                         row_id=row_id,
                         sku=sku,
-                        dt_occupation=datetime.utcnow()
+                        dt_occupation=datetime.now()
                     )
                     db.session.add(new_row)
             
@@ -358,7 +358,7 @@ class BufferSKURow(db.Model):
     area_id = db.Column(db.Integer, nullable=False)
     row_id = db.Column(db.Integer, nullable=False)   
     sku = db.Column(db.String(32), nullable=False)  
-    dt_occupation = db.Column(db.DateTime, default=datetime.utcnow) # horário que essa fila assumiu esse sku pela primeira vez.
+    dt_occupation = db.Column(db.DateTime, default=datetime.now) # horário que essa fila assumiu esse sku pela primeira vez.
     fixed = db.Column(db.Integer, default=0)   # define se é uma rua editavel.(no banco)
     
 
@@ -374,6 +374,6 @@ class BufferPositions(db.Model):
     row_id = db.Column(db.Integer, nullable=False) 
     pos_id = db.Column(db.Integer, nullable=False)  # posicao/tag do buffer
 
-    dt_occupation = db.Column(db.DateTime, default=datetime.utcnow) # horario que a posicao foi ocupada.
+    dt_occupation = db.Column(db.DateTime, default=datetime.now) # horario que a posicao foi ocupada.
 
     

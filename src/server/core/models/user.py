@@ -7,4 +7,4 @@ class User(db.Model):
     password = db.Column(db.String(500), nullable=False)
     roles = db.Column(db.String(10), nullable=False)
     token = db.Column(db.String(32), unique=True)
-    token_date = db.Column(db.DateTime, default=datetime.utcnow)
+    token_date = db.Column(db.DateTime, default=datetime.now)

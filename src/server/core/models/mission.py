@@ -15,5 +15,5 @@ class Mission(db.Model):
     step_type = db.Column(db.String(20))  #StepTypeEnum
     position_target = db.Column(db.Integer) # CurrentTargetId - assumimos sempre apenas 1.
 
-    dt_created = db.Column(db.DateTime, default=datetime.utcnow)
-    dt_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    dt_created = db.Column(db.DateTime, default=datetime.now)
+    dt_updated = db.Column(db.DateTime, default=datetime.now)

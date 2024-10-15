@@ -238,7 +238,7 @@ class StatusControl:
                                 l_m.info = navithor_main_state
 
                             l_m.agv = agv
-                            l_m.dt_updated = datetime.utcnow()
+                            l_m.dt_updated = datetime.now()
 
                             # verifica se finalizou em posicao de buffer.
                             # nao nos preocupamos em setar no navithor, pois quando agv descarrega ele ja seta como ocupado.
