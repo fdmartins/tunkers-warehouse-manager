@@ -1,13 +1,17 @@
 from flask import Flask, request, jsonify, render_template, Response
 from core import db, app
-from core.models import ButtonCall, ButtonStatus
+from core.models import ButtonCall, ButtonStatus, Buffer
 import hashlib
 from datetime import datetime
 import logging
 import json
 from sqlalchemy import desc
+from ..manager.steps_generator import StepsMachineGenerator
+import traceback
 
 logger = logging.getLogger(__name__)
+buffer_service = Buffer()
+steps_generator = StepsMachineGenerator(db, buffer_service)
 
 @app.route('/v1/button')
 def test_buttons():
@@ -121,22 +125,21 @@ def create_call():
             # Verificamos se este IP esta na whitelist.
             # TODO
 
-            # Verificamos se existe algum chamado pendente para a mesma maquina.
-            # TODO
-
-
-
-            if False:
-                logger.warning(f"Ação NEGADA. Já existe chamado. ")
-                return jsonify({'status': False, "message":f"NEGADO. Ja existe chamado." }), 200
+            # Verificamos se pode fazer o chamado.
+            _ = steps_generator.get_steps(new_call)
 
             # atualiza na tabela de status o ultimo horario da ordem.
             button_status_db.last_call = datetime.now()
 
             # Adicionar a chamada ao banco de dados
+            # para fins de registro, será adicionado mesmo se deu erro
             db.session.add(new_call)
             db.session.commit()
 
+            if new_call.mission_status!="PENDENTE":
+                # generator mudou o status. Isso significa que recusou. Retornamos a falha.
+                logger.warning(f"Chamado Recusado! Motivo: " + new_call.mission_status)
+                return jsonify({'status': False, "message":f"RECUSADO: {new_call.info}" }), 200
 
             logger.info(f"Ação aceita. Cadastrada no Banco.")
 
@@ -144,6 +147,7 @@ def create_call():
 
         except Exception as e:
             logger.error(f"Erro Geral: {e}")
+            logger.error(traceback.format_exc())
             return jsonify({'status': False, "message":f"Erro Geral: {e} " }), 200
 
     else:

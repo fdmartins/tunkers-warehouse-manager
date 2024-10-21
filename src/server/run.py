@@ -93,11 +93,15 @@ def run_flask():
 if __name__ == '__main__':
 
     # Configuração  do logger
+    
+    rotating_handler = TimedRotatingFileHandler('app.log', when='midnight', interval=1, backupCount=15)  # Gera um arquivo por dia, mantem apenas os 15  dias.
+    rotating_handler.namer = lambda name: name.replace(".log", "") + ".log" # para manter a extensao log.
+
     logging.basicConfig(
         level=logging.DEBUG if DEBUG else logging.INFO,
         format=('%(asctime)-20s | %(name)-30s | %(levelname)-8s | %(message)-50s'),
         handlers=[
-            TimedRotatingFileHandler('app.log', when='midnight', interval=1, backupCount=15),  # Gera um arquivo por dia, mantem apenas os 15  dias.
+            rotating_handler,
             logging.StreamHandler()  # Envia as mensagens para o console
         ]
     )
