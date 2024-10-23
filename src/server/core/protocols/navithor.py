@@ -167,7 +167,7 @@ class Navithor:
         response =  self.call_api(endpoint, payload)
 
         if response["success"]==False:
-            self.logger.error(f"NAVITHOR NAO RETORNO SUCESSO AO MUDAR STATUS DE OCUPACAO DA POSICAO {position}")
+            self.logger.error(f"NAVITHOR NAO RETORNO SUCESSO AO MUDAR STATUS DE OCUPACAO DA POSICAO {position} {response}")
 
     def get_position_occupation(self, position):
         #self.logger.debug(f"Buscando status de ocupacao da posicao {position}...")

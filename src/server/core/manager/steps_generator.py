@@ -35,7 +35,7 @@ class StepsMachineGenerator:
 
         #### AREA A #####
 
-        if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489]:
+        if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489, 670]:
             # maquina RETROFILA
             if btn_call.action_type=="RETIRA" and btn_call.situation!="NAO_CONFORME":
                 # carretel cheio na entrada e retira carretel vazio
@@ -161,7 +161,7 @@ class StepsMachineGenerator:
 
         #### AREA F - CAPA CAPA #####
 
-        elif btn_call.id_machine in [6150,6171,6170,6164,6162,6161,6159,6158,6137]:
+        elif btn_call.id_machine in [6150,6171,6170,6164,6162,6161,6159,6158,6157]:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
                 steps = self.machine_capacapa.abastece_carretel_cheio_retira_carretel_vazio(btn_call)

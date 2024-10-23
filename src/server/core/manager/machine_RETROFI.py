@@ -23,6 +23,7 @@ class RETROFI:
             443: {"POS_CHEIO":60, "POS_VAZIO":50},
             439: {"POS_CHEIO":40, "POS_VAZIO":30},
             489: {"POS_CHEIO":20, "POS_VAZIO":10},
+            670: {"POS_CHEIO":2, "POS_VAZIO":1},
         }
 
 
