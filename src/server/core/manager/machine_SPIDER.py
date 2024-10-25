@@ -32,6 +32,7 @@ class SPIDER:
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             btn_call.info = f"Sem espaco livre no buffer"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 
@@ -50,6 +51,7 @@ class SPIDER:
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             btn_call.info = f"Sem espaco livre no buffer incompletos"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 

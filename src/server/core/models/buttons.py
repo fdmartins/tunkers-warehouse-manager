@@ -23,6 +23,7 @@ class ButtonStatus(db.Model):
 class ButtonCall(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ip_device = db.Column(db.String(20), primary_key=False)      # IP de onde foi feita a requisicao.
+    id_button =  db.Column(db.String(20), primary_key=False)     # identificacao da botoeira, string, pode ser um texto se desejado.
     message_type = db.Column(db.String(20), nullable=False)    # ACTION / LIFE
     material_type = db.Column(db.String(20), nullable=False)    # BOBINA / PALLET
     action_type = db.Column(db.String(20), nullable=False)      # ABASTECE / RETIRA
@@ -46,6 +47,7 @@ class ButtonCall(db.Model):
         return (f"ButtonCall("
                 f"id={self.id}, "
                 f"ip_device={self.ip_device}, "
+                f"id_button={self.id_button}, "
                 f"message_type={self.message_type}, "
                 f"material_type={self.material_type}, "
                 f"action_type={self.action_type}, "

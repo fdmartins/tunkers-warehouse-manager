@@ -47,6 +47,7 @@ class SAMPS:
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
             btn_call.info = f"Sem vagas no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -65,6 +66,7 @@ class SAMPS:
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
             btn_call.info = f"Sem vagas no buffer carretel N/C! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -123,6 +125,7 @@ class SAMPS:
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             btn_call.info = f"Sem posicao livre no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 
@@ -141,6 +144,7 @@ class SAMPS:
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel no buffer!")
             btn_call.info = f"Sem posicao livre no buffer incompleto! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         steps.insert(StepType.Dropoff, tag_unload)
 

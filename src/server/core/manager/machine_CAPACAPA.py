@@ -53,7 +53,7 @@ class CAPACAPA:
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
             btn_call.info = f"Sem espaco no buffer para carretel vazio"
-            #btn_call.mission_status = "FINALIZADO_ERRO"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)

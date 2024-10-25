@@ -110,7 +110,7 @@ class StatusControl:
             self.db.session.commit()  # Atualiza o banco de dados
 
             if previous_status_message!=device.status_message:
-                History.error("BOTOEIRA", f"Botoeira {device.ip_device} está OFFLINE - REDE OK?")
+                History.error("BOTOEIRA", f"Botoeira {device.ip_device} está OFFLINE - Desligada? WIFI OK?")
                 self.logger.error(f"Botoeira {device.ip_device} está OFFLINE.")
         else:
             device.status_message = "ONLINE"
@@ -130,8 +130,9 @@ class StatusControl:
         #logging.warning(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
 
         if device.life_sequence - device.life_previous_sequence > 1:
-            History.error("BOTOEIRA", f"Sequencia LIFE ATRASADA {device.ip_device} - REDE OK? ")
-            self.logger.error(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
+            if device.status_message == "ONLINE":
+                History.error("BOTOEIRA", f"Sequencia LIFE ATRASADA {device.ip_device} - Reiniciada ou WIFI INSTÁVEL? ")
+                self.logger.error(f"Sequencia de LIFE ATRASADA {device.life_previous_sequence} {device.life_sequence} no dispositivo {device.ip_device}...")
 
 
 

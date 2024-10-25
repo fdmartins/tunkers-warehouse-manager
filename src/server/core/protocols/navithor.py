@@ -34,16 +34,18 @@ class Navithor:
         
         #self.logger.debug(headers)
 
-        # Faz a requisição POST para a API
-        if method=="POST":
-            if headers["Content-Type"]=="application/x-www-form-urlencoded":
-                #self.logger.debug("application/x-www-form-urlencoded")
-                response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", data=payload, headers=headers)
+        try:
+            # Faz a requisição POST para a API
+            if method=="POST":
+                if headers["Content-Type"]=="application/x-www-form-urlencoded":
+                    #self.logger.debug("application/x-www-form-urlencoded")
+                    response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", data=payload, headers=headers)
+                else:
+                    response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
             else:
-                response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
-        else:
-            response = requests.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
-
+                response = requests.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
+        except Exception as e:
+            raise Exception(f"Falha Comunicação NAVITHOR - {e}") 
 
         self.logger.debug(response.json())
 
@@ -102,6 +104,9 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload)
 
+        if "Success" not in response:
+            raise Exception(f"Falha Comunicação NAVITHOR - ao criar missão id {id_local}: {response}") 
+
         if response["Success"]==False:
             self.logger.error(f"Falha ao criar missão id {id_local}: {response}")
             raise Exception(f"Falha ao criar missão id {id_local}: {response['Description']}") 
@@ -139,6 +144,9 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload)
 
+        if "Success" not in response:
+            raise Exception(f"Falha Comunicação NAVITHOR - ao criar MissionExtend id {external_id}: {response}") 
+
         if response["Success"]==False:
             self.logger.error(f"Falha ao criar MissionExtend id {external_id}: {response}")
             raise Exception(f"Falha ao criar MissionExtend id {external_id}: {response['Description']}") 
@@ -166,6 +174,9 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload)
 
+        if "Success" not in response:
+            raise Exception(f"Falha Comunicação NAVITHOR - ao mudar status da ocupação da posicao {position}: {response}") 
+
         if response["success"]==False:
             self.logger.error(f"NAVITHOR NAO RETORNO SUCESSO AO MUDAR STATUS DE OCUPACAO DA POSICAO {position} {response}")
 
@@ -189,7 +200,9 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload, method="GET")
 
-
+        if "LoadCount" not in response:
+            raise Exception(f"Falha Comunicação NAVITHOR - ao buscar status da ocupação da posicao {position}: {response}") 
+        
         if response["LoadCount"]!=0:
             return True
 
