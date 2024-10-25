@@ -131,9 +131,45 @@ class Buffer:
 
         return ultima_livre
             
-    
+    def get_free_pos_POR_PRIORIDADE(self, sku, buffers_allowed):
+        """
+        Encontra uma posição livre para um SKU respeitando a prioridade sequencial dos buffers permitidos
+        Args:
+            sku: SKU do produto
+            buffers_allowed: Lista de buffers permitidos em ordem de prioridade
+        Returns:
+            tuple: (position_id, area_id) ou (None, None) se não encontrar posição
+        """
+        # Para cada buffer na ordem de prioridade
+        for area_id in buffers_allowed:
+            # Primeiro verificamos se o SKU já existe em alguma rua deste buffer
+            ret_buffer = BufferSKURow.query.filter_by(sku=sku, area_id=area_id).all()
+            
+            for ret in ret_buffer:
+                free_pos_id, free_area_id = self.get_first_free_pos_in_row(ret.area_id, ret.row_id)
+                if free_pos_id is not None:
+                    self.logger.debug(f"Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
+                    return free_pos_id, free_area_id
+
+            # Se não encontrou o SKU no buffer atual ou não há posição livre,
+            # procura uma rua livre neste buffer
+            if area_id in self.buffers:
+                buffer = self.buffers[area_id]
+                for row in buffer['rows']:
+                    ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row["id"]).one_or_none()
+                    if ret is None:
+                        free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
+                        if free_pos_id is not None:
+                            self.logger.debug(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
+                            return free_pos_id, free_area_id
+
+        # Se não encontrou nenhuma posição em nenhum buffer permitido
+        return None, None
 
     def get_free_pos(self, sku, buffers_allowed):
+
+        # TESTAR get_free_pos_POR_PRIORIDADE (aguarde proposta adicional.)
+
         free_pos_id = None
         free_area_id = None 
 
