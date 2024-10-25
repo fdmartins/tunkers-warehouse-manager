@@ -10,7 +10,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 port = 8080
 DEBUG = False
-VERSION = "20241023"
+VERSION = "20241025"
 
 # Function to get the local IP address
 def get_local_ip():
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     # Configuração  do logger
     
-    rotating_handler = TimedRotatingFileHandler('app.log', when='midnight', interval=1, backupCount=15)  # Gera um arquivo por dia, mantem apenas os 15  dias.
+    rotating_handler = TimedRotatingFileHandler('./logs/app.log', when='midnight', interval=1, backupCount=15)  # Gera um arquivo por dia, mantem apenas os 15  dias.
     rotating_handler.namer = lambda name: name.replace(".log", "") + ".log" # para manter a extensao log.
 
     logging.basicConfig(

@@ -52,7 +52,7 @@ class EMBALAGEM_MIMI:
         if tag_unload==None:
             self.logger.error(f"Não temos posicao livre disponivel na expedicao!")
             btn_call.info = f"Sem espaco na expedicao"
-            #btn_call.mission_status = "FINALIZADO_ERRO"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
         
         steps.insert(StepType.Dropoff, tag_unload)

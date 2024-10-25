@@ -26,7 +26,7 @@ def list_call():
     for c in bt_calls:
         output.append({
             'ID': c.id,
-            #'Botoeira': c.ip_device,
+            'ID Botoeira': c.id_button,
             'Máquina': c.id_machine,
             'Material': c.material_type,
             'Tipo Ação': c.action_type,
@@ -56,7 +56,8 @@ def create_call():
     # Tenta encontrar o registro pelo ip_device
     button_status_db = ButtonStatus.query.filter_by(ip_device=ip_device).first()
 
-    if button_status_db==None:
+    if button_status_db==None and ip_device!="127.0.0.1":
+        
         # nao existe ainda.
         button_status = ButtonStatus(
             ip_device=ip_device,
@@ -74,7 +75,7 @@ def create_call():
         button_status_db = ButtonStatus.query.filter_by(ip_device=ip_device).first()
 
 
-    if message_type=="LIFE":
+    if message_type=="LIFE" and ip_device!="127.0.0.1":
         sequence = data.get('sequence')
         logger.debug(f"Recebido LIFE botoeira {ip_device} - seq:{sequence} seq_anterior:{button_status_db.life_sequence} ")
 
@@ -89,12 +90,12 @@ def create_call():
     elif message_type=="ACTION":
 
         try:
-    
+            id_button = data.get('id_button')
             material_type = data.get('material_type')
             action_type = data.get('action_type')
             situation = data.get('situation')
             id_machine = data.get('id_machine')
-
+            
             sku = data.get('sku')
 
             # se enviou sku, fazemos o resolver pela nossa tabela...
@@ -108,6 +109,7 @@ def create_call():
 
             new_call = ButtonCall(
                 ip_device=ip_device,
+                id_button=id_button,
                 message_type=message_type,
                 material_type=material_type,
                 action_type=action_type,
@@ -125,11 +127,15 @@ def create_call():
             # Verificamos se este IP esta na whitelist.
             # TODO
 
+            # verificamos se existe chamado PENDENTE ou EXECUTANDO para essa maquina...
+            
+
             # Verificamos se pode fazer o chamado.
             _ = steps_generator.get_steps(new_call)
 
             # atualiza na tabela de status o ultimo horario da ordem.
-            button_status_db.last_call = datetime.now()
+            if ip_device!="127.0.0.1":
+                button_status_db.last_call = datetime.now()
 
             # Adicionar a chamada ao banco de dados
             # para fins de registro, será adicionado mesmo se deu erro

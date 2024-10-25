@@ -56,7 +56,7 @@ class RETROFI:
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel cheio!")
             btn_call.info = f"Sem espaco livre no buffer de carretel cheio"
-            #btn_call.mission_status = "FINALIZADO_ERRO"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
@@ -91,8 +91,8 @@ class RETROFI:
         tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
         if tag_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel nao conforme!")
-            btn_call.info = f"Sem espaco para carretel nao conforme"
-            #btn_call.mission_status = "FINALIZADO_ERRO"
+            btn_call.info = f"Sem espaco no buffer para carretel nao conforme"
+            btn_call.mission_status = "FINALIZADO_ERRO"
             return None
             
         steps.insert(StepType.Dropoff, tag_unload)
