@@ -20,7 +20,7 @@ class EMBALAGEM_K:
         steps = STEPS()
 
         # buscamos pallet cheio no buffer
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[5,6,7, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[5,7, ])
         if tag_load==None:
             self.logger.error(f"Não existe pallet com sku {btn_call.sku} no buffer! ")
             btn_call.info = f"Sem sku {btn_call.sku} no buffer! "
