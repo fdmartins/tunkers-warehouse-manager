@@ -10,7 +10,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 port = 8080
 DEBUG = False
-VERSION = "20241029"
+VERSION = "20241030"
 
 # Function to get the local IP address
 def get_local_ip():
