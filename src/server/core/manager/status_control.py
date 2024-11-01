@@ -17,6 +17,8 @@ class StatusControl:
         
         self.logger.info("Iniciando StatusControl...")
 
+        self.system_start_date = datetime.now()
+
         self.db = db
         self.buffers = buffers
         self.comm = comm
@@ -102,6 +104,11 @@ class StatusControl:
 
     def button_status_monitor(self, device):
         
+        if datetime.now() - self.system_start_date < timedelta(seconds=15):
+            # aguarda 15 segundos antes de iniciar a verificacao, para dar tempo das botoeiras enviarem pelo menos um life.
+            # assim nao logamos erroneamente que as botoeiras ficaram offline.
+            return
+ 
         previous_status_message = device.status_message
 
         # Verificar se last_life está mais de 15 segundos atrasado

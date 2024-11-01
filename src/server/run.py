@@ -116,13 +116,16 @@ if __name__ == '__main__':
     ip = get_local_ip()
     logging.info(f"IP da maquina server {ip}")
     
+    # preparamos o core, endpoints, etc...(deve ser antes de iniciar o servidor web.)
+    core.start()
+
     # inicia servidor web
     logging.info(f"Iniciando Servidor Web")
     flask_thread = Thread(target=run_flask)
     flask_thread.daemon = True
     flask_thread.start()
 
-    core.start()
+    
 
     #while True:
     #    time.sleep(1)

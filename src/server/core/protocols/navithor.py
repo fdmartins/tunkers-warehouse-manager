@@ -7,7 +7,7 @@ class Navithor:
     def __init__(self, ip="127.0.0.1", port=1234):
         self.logger = logging.getLogger(__name__)
 
-        self.fake = False
+        self.fake = True
         self.fake_pos_occupation = {}
 
         self.ip = ip
