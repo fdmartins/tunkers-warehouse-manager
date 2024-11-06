@@ -128,10 +128,10 @@ def create_call():
             # TODO
 
             # verificamos se existe chamado PENDENTE ou EXECUTANDO para essa maquina...
-            
+            # implementado no get_steps...
 
             # Verificamos se pode fazer o chamado.
-            _ = steps_generator.get_steps(new_call)
+            _ = steps_generator.get_steps(new_call, pre_check=True)
 
             # atualiza na tabela de status o ultimo horario da ordem.
             if ip_device!="127.0.0.1":

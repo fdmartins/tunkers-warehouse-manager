@@ -1,6 +1,8 @@
 from ..protocols.defines import StepType
 import logging
 from .steps import STEPS
+from sqlalchemy import or_, and_
+from ..models.buttons import ButtonCall, ButtonStatus
 
 from .machine_SAMPS import SAMPS
 from .machine_RETROFI import RETROFI
@@ -30,8 +32,24 @@ class StepsMachineGenerator:
 
 
 
-    def get_steps(self, btn_call):
+    def get_steps(self, btn_call, pre_check=False):
         steps = None
+
+        #### VERIFICAMOS E JA EXISTE CHAMADO DESTE MAQUINA, SE SIM, RECUSAMOS #### 
+        if pre_check:
+            button_running_calls = ButtonCall.query.filter(
+                                                and_(
+                                                    ButtonCall.id_machine == btn_call.id_machine,
+                                                    or_(
+                                                        ButtonCall.mission_status == 'PENDENTE',
+                                                        ButtonCall.mission_status == 'EXECUTANDO'
+                                                    )
+                                                )
+                                            ).first()
+            if button_running_calls:
+                btn_call.info = f"Recusado. Pedido duplicado para a maquina. Aguarde finalização e reenvie."
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                return steps
 
         #### AREA A #####
 

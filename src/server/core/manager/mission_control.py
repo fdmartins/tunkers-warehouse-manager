@@ -35,7 +35,7 @@ class MissionControl:
             with app.app_context():
                 try:
                     self.run()
-                    time.sleep(1)
+                    time.sleep(10)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
                     self.logger.error(traceback.format_exc())
