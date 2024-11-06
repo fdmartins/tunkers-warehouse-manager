@@ -11,7 +11,7 @@ import traceback
 
 port = 8080
 DEBUG = False
-VERSION = "20241030"
+VERSION = "20241106.0"
 
 # Function to get the local IP address
 def get_local_ip():
@@ -117,6 +117,9 @@ if __name__ == '__main__':
     ip = get_local_ip()
     logging.info(f"IP da maquina server {ip}")
     
+    # preparamos o core, endpoints, etc...(deve ser antes de iniciar o servidor web.)
+    core.start()
+
     # inicia servidor web
     logging.info(f"Iniciando Servidor Web")
     flask_thread = Thread(target=run_flask)

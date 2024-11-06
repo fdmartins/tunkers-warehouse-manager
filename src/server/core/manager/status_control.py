@@ -17,6 +17,8 @@ class StatusControl:
         
         self.logger.info("Iniciando StatusControl...")
 
+        self.system_start_date = datetime.now()
+
         self.db = db
         self.buffers = buffers
         self.comm = comm
@@ -44,14 +46,12 @@ class StatusControl:
                     
                     self.checkMissionStatus()
 
-                    
-
-                    time.sleep(5)
+                    time.sleep(1)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
                     self.logger.error(traceback.format_exc())
                     History.error("SISTEMA", f"{e}")
-                    time.sleep(10)
+                    time.sleep(15)
 
 
     def cleanDB(self):
@@ -102,6 +102,11 @@ class StatusControl:
 
     def button_status_monitor(self, device):
         
+        if datetime.now() - self.system_start_date < timedelta(seconds=15):
+            # aguarda 15 segundos antes de iniciar a verificacao, para dar tempo das botoeiras enviarem pelo menos um life.
+            # assim nao logamos erroneamente que as botoeiras ficaram offline.
+            return
+ 
         previous_status_message = device.status_message
 
         # Verificar se last_life está mais de 15 segundos atrasado
@@ -266,14 +271,12 @@ class StatusControl:
                                 else:
                                     self.logger.info(f"Passo da missão foi finalizada em na posição {target_pos} que não é buffer.")
 
-            if not existsOnNavithor:
+            if not existsOnNavithor or l_m.status=="Complete":
                 # seta como concluido.
-                self.logger.info(f"Passo da missão {l_m.id_server} (id local:{l_m.id_local}) não existe mais no navithor. Finalizamos.")
-                if l_m.status=="Complete":
+                self.logger.info(f"Passo da missão {l_m.id_server} (id local:{l_m.id_local}) finalizado, ou não existe mais no navithor. Finalizamos.")
+                if l_m.status!="Complete":
                     self.logger.error(f"O passo foi finalizado fora de ciclo! Ultimo status: {l_m.status}")
 
-
-               
                 l_m.status = "FINALIZADO"
 
                 # tambem setamos como finalizado no chamado da botoeira.
