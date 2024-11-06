@@ -104,7 +104,7 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload)
 
-        if ("success" not in response) or ("Success" not in response):
+        if ("success" not in response) and ("Success" not in response):
             raise Exception(f"Falha Comunicação NAVITHOR - ao criar missão id {id_local}: {response}") 
 
         if response["Success"]==False:
@@ -144,7 +144,7 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload)
 
-        if ("success" not in response) or ("Success" not in response):
+        if ("success" not in response) and ("Success" not in response):
             raise Exception(f"Falha Comunicação NAVITHOR - ao criar MissionExtend id {external_id}: {response}") 
 
         if response["Success"]==False:
@@ -174,7 +174,7 @@ class Navithor:
 
         response =  self.call_api(endpoint, payload)
 
-        if ("success" not in response) or "Success" not in response:
+        if ("success" not in response) and ("Success" not in response):
             raise Exception(f"Falha Comunicação NAVITHOR - ao mudar status da ocupação da posicao {position}: {response}") 
 
         if response["success"]==False:

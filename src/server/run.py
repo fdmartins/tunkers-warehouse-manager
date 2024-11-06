@@ -7,6 +7,7 @@ import logging
 import time
 import core
 from logging.handlers import TimedRotatingFileHandler
+import traceback
 
 port = 8080
 DEBUG = False
@@ -122,7 +123,12 @@ if __name__ == '__main__':
     flask_thread.daemon = True
     flask_thread.start()
 
-    core.start()
+    try:
+        core.start()
+    except Exception as e:
+        logging.error(f"ERRO GERAL: {e}")
+        logging.error(traceback.format_exc())
+        raise Exception(e)
 
     #while True:
     #    time.sleep(1)

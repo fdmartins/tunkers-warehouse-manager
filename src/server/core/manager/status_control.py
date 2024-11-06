@@ -153,8 +153,10 @@ class StatusControl:
         positions = self.buffers.get_all_positions_and_ocupations()
 
         for p in positions:
-            if self.comm.get_position_occupation(p["pos"])!=p["occupied"]:
-                self.logger.warning(f"Posicao {p['pos']} com status de ocupacao corrigida. Agora occupied=={p['occupied']}")
+            navithor_pos = self.comm.get_position_occupation(p["pos"])
+            local_pos = p["occupied"]
+            if navithor_pos!=local_pos:
+                self.logger.warning(f"Posicao {p['pos']} navithor {navithor_pos} local {local_pos}. Corrigido.")
                 self.comm.set_position_occupation(p["pos"], p["occupied"])
         
     def checkMissionStatus(self):
