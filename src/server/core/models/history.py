@@ -8,8 +8,8 @@ class History(db.Model):
     message = db.Column(db.String(200))
     dt_created = db.Column(db.DateTime, default=datetime.now())
 
-
     def info(alert_type, message):
+
         a = History(
             alert_type=alert_type,
             level="INFO",
@@ -32,6 +32,12 @@ class History(db.Model):
         db.session.commit()
 
     def error(alert_type, message):
+        # Verifica se já existe uma mensagem igual no banco
+        # evitando mostrar sempre a mesma coisa... 
+        # NAO FUNCIONOU, pois exceptionm retorna objeto hex que muda o tempo todo...
+        #if History.query.filter_by(message=message).first():
+        #    return
+        
         a = History(
             alert_type=alert_type,
             level="ERRO",

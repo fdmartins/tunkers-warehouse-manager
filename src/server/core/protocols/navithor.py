@@ -7,7 +7,7 @@ class Navithor:
     def __init__(self, ip="127.0.0.1", port=1234):
         self.logger = logging.getLogger(__name__)
 
-        self.fake = True
+        self.fake = False
         self.fake_pos_occupation = {}
 
         self.ip = ip
@@ -45,6 +45,13 @@ class Navithor:
             else:
                 response = requests.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
         except Exception as e:
+            self.logger.error(f"Falha request navithor {e}")
+            if "Authorization" in str(e):
+                # se for um erro de authorizacao, tentamos recuperar conexao...
+                # aparentemente, quando sistema navitec e reiniciado perdemos a permissao...
+                self.logger.error(f"Tentando recuperar autorizacao...")
+                self.updateAuthToken()
+
             raise Exception(f"Falha Comunicação NAVITHOR - {e}") 
 
         self.logger.debug(response.json())
