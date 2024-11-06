@@ -46,7 +46,7 @@ class StatusControl:
                     
                     self.checkMissionStatus()
 
-                    time.sleep(1)
+                    time.sleep(2)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
                     self.logger.error(traceback.format_exc())
