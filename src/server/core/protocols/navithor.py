@@ -49,8 +49,11 @@ class Navithor:
             if "Authorization" in str(e):
                 # se for um erro de authorizacao, tentamos recuperar conexao...
                 # aparentemente, quando sistema navitec e reiniciado perdemos a permissao...
-                self.logger.error(f"Tentando recuperar autorizacao...")
-                self.updateAuthToken()
+                try:
+                    self.logger.error(f"Tentando recuperar autorizacao...")
+                    self.updateAuthToken()
+                except Exception as e2:
+                    self.logger.error(f"FALHA 2 ao atualizad autenticacao....")
 
             raise Exception(f"Falha Comunicação NAVITHOR - {e}") 
 

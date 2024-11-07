@@ -11,7 +11,7 @@ import traceback
 
 port = 8080
 DEBUG = False
-VERSION = "20241106.0"
+VERSION = "20241106.1"
 
 # Function to get the local IP address
 def get_local_ip():
@@ -118,14 +118,6 @@ if __name__ == '__main__':
     logging.info(f"IP da maquina server {ip}")
     
     # preparamos o core, endpoints, etc...(deve ser antes de iniciar o servidor web.)
-    core.start()
-
-    # inicia servidor web
-    logging.info(f"Iniciando Servidor Web")
-    flask_thread = Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-
     try:
         core.start()
     except Exception as e:
@@ -133,6 +125,14 @@ if __name__ == '__main__':
         logging.error(traceback.format_exc())
         raise Exception(e)
 
+
+    # inicia servidor web
+    logging.info(f"Iniciando Servidor Web")
+    flask_thread = Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+
+ 
     #while True:
     #    time.sleep(1)
     if True:
