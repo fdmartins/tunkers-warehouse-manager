@@ -2,6 +2,30 @@ import logging
 import requests
 
 from .defines import StepType
+import threading
+from typing import Optional, Dict, Any
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+class ThreadSafeRequests:
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._session = requests.Session()
+        MAX_POOL_SIZE = 2
+        adapter = HTTPAdapter(pool_connections=MAX_POOL_SIZE, pool_maxsize=MAX_POOL_SIZE)
+        self._session .mount("http://", adapter)
+    
+    def get(self, url: str, **kwargs) -> requests.Response:
+        with self._lock:
+            return self._session.get(url, **kwargs)
+    
+    def post(self, url: str, data: Optional[Dict[str, Any]] = None, **kwargs) -> requests.Response:
+        with self._lock:
+            return self._session.post(url, data=data, **kwargs)
+    
+    def __del__(self):
+        self._session.close()
+
 
 class Navithor:
     def __init__(self, ip="127.0.0.1", port=1234):
@@ -13,7 +37,11 @@ class Navithor:
         self.ip = ip
         self.port = port
 
-        self.logger.info(f"Iniciado Protocolo API Navithor IP {ip} porta {port}")
+        self.logger.info(f"Iniciando Protocolo API Navithor IP {ip} porta {port}")
+
+        self.requester = ThreadSafeRequests()
+
+        self.logger.info(f"Iniciado OK")
 
         self.access_token = None
 
@@ -39,11 +67,11 @@ class Navithor:
             if method=="POST":
                 if headers["Content-Type"]=="application/x-www-form-urlencoded":
                     #self.logger.debug("application/x-www-form-urlencoded")
-                    response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", data=payload, headers=headers)
+                    response = self.requester.post(f"http://{self.ip}:{self.port}{endpoint}", data=payload, headers=headers)
                 else:
-                    response = requests.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
+                    response = self.requester.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
             else:
-                response = requests.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
+                response = self.requester.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
         except Exception as e:
             self.logger.error(f"Falha request navithor {e}")
             if "Authorization" in str(e):

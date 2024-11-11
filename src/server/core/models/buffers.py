@@ -49,7 +49,7 @@ class Buffer:
 
         self.logger.info(f"Arquivo de configuracao de buffers carregado.")
 
-        self.logger.info(json.dumps(self.buffers, indent=4) )
+        #self.logger.info(json.dumps(self.buffers, indent=4) )
 
 
 

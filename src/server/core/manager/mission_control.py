@@ -35,6 +35,7 @@ class MissionControl:
             with app.app_context():
                 try:
                     self.run()
+                    #self.comm.send_mission(id_local=0, steps=[])
                     time.sleep(2)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
