@@ -93,8 +93,8 @@ class StatusControl:
 
     def checkAuthTokenNavithor(self):
         # o token tem tempo de validade.
-        # renovamos a cada 1h.
-        if self.last_token_navithor_update==None or (datetime.now() - self.last_token_navithor_update) > timedelta(hours=1):
+        # renovamos a cada 1 minuto ou quando necessario.
+        if self.comm.needAuthToken() or (self.last_token_navithor_update==None) or (datetime.now() - self.last_token_navithor_update) > timedelta(minutes=1):
             self.logger.info("Atualizando Token Navithor...")
             self.comm.updateAuthToken()
             self.last_token_navithor_update = datetime.now()
@@ -186,7 +186,14 @@ class StatusControl:
             for nt_m in navithor_missions:
                 navithor_id = nt_m["Id"]
                 navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
-                local_id = int(nt_m["ExternalId"])
+
+                local_id = -1
+                try:
+                    # missoes criadas diretamente no navithor tem id como string.
+                    local_id = int(nt_m["ExternalId"])
+                except:
+                    pass
+                
                 agv = nt_m["AssignedMachineId"]
                 current_step_index = nt_m["CurrentStepIndex"]
                 steps = nt_m["Steps"]

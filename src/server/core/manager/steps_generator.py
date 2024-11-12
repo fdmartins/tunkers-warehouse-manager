@@ -35,11 +35,12 @@ class StepsMachineGenerator:
     def get_steps(self, btn_call, pre_check=False):
         steps = None
 
-        #### VERIFICAMOS E JA EXISTE CHAMADO DESTE MAQUINA, SE SIM, RECUSAMOS #### 
+        #### VERIFICAMOS E JA EXISTE CHAMADO DESTE MAQUINA "E" COM MESMA ACAO (ABASTECE/RETIRA), SE SIM, RECUSAMOS #### 
         if pre_check:
             button_running_calls = ButtonCall.query.filter(
                                                 and_(
                                                     ButtonCall.id_machine == btn_call.id_machine,
+                                                    ButtonCall.action_type == btn_call.action_type,
                                                     or_(
                                                         ButtonCall.mission_status == 'PENDENTE',
                                                         ButtonCall.mission_status == 'EXECUTANDO'

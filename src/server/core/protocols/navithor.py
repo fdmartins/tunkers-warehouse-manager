@@ -54,15 +54,17 @@ class Navithor:
 
         if self.fake: return {}
 
-        if headers==None:
-            headers = {
-                'Authorization': f'Bearer {self.access_token}',
-                "Content-Type": "application/json"
-            }
-        
-        #self.logger.debug(headers)
-
         try:
+
+            if self.access_token==None:
+                self.logger.warning("Access Token NULO (erro de comm anteriormente?)")
+
+            if headers==None:
+                headers = {
+                    'Authorization': f'Bearer {self.access_token}',
+                    "Content-Type": "application/json"
+                }
+            
             # Faz a requisição POST para a API
             if method=="POST":
                 if headers["Content-Type"]=="application/x-www-form-urlencoded":
@@ -72,16 +74,13 @@ class Navithor:
                     response = self.requester.post(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
             else:
                 response = self.requester.get(f"http://{self.ip}:{self.port}{endpoint}", json=payload, headers=headers)
+
+            
         except Exception as e:
             self.logger.error(f"Falha request navithor {e}")
-            if "Authorization" in str(e):
-                # se for um erro de authorizacao, tentamos recuperar conexao...
-                # aparentemente, quando sistema navitec e reiniciado perdemos a permissao...
-                try:
-                    self.logger.error(f"Tentando recuperar autorizacao...")
-                    self.updateAuthToken()
-                except Exception as e2:
-                    self.logger.error(f"FALHA 2 ao atualizad autenticacao....")
+
+            # limpamos o token para refazer no proximo ciclo (navithor provavelmente guarda em memoria , e quando é reiniciado perde a autorizacao.)
+            self.access_token=None
 
             raise Exception(f"Falha Comunicação NAVITHOR - {e}") 
 
@@ -100,6 +99,10 @@ class Navithor:
  
         return self.call_api(endpoint, method="GET")
 
+    def needAuthToken(self):
+        if self.access_token==None:
+            return True
+        return False
 
     def updateAuthToken(self):
         if self.fake: return False
