@@ -105,6 +105,19 @@ class Buffer:
             
         return None, None
 
+    def is_row_with_sku_editable(self, area_id, row_id):
+        # Tenta encontrar a entrada existente para o area_id e row_id
+        buffer_row = BufferSKURow.query.filter_by(area_id=area_id, row_id=row_id).first()
+
+        if buffer_row:
+            if buffer_row.fixed==1:
+                return False
+            else:
+                return True
+            
+        return True
+
+
     def get_sku_from_row(self, area_id, row_id):
         all_ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row_id).all()
 
@@ -290,7 +303,9 @@ class Buffer:
             if buffer_row:
                 if buffer_row.fixed==1:
                     # podemos limpar as posicoes, mas nao trocar o sku!!
-                    self.clear_all_positions_of_row(area_id, row_id)
+                    if sku is None:
+                        self.clear_all_positions_of_row(area_id, row_id)
+                        
                     return False, "Esta posição é protegida. Não pode trocar o SKU."
 
             if sku is None:

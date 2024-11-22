@@ -1,5 +1,8 @@
 from core import db
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 class History(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -9,6 +12,8 @@ class History(db.Model):
     dt_created = db.Column(db.DateTime, default=datetime.now())
 
     def info(alert_type, message):
+
+        logger.info(f"Historico {alert_type} {message}")
 
         a = History(
             alert_type=alert_type,
@@ -21,6 +26,8 @@ class History(db.Model):
         db.session.commit()
 
     def warning(alert_type, message):
+        logger.warning(f"Historico {alert_type} {message}")
+
         a = History(
             alert_type=alert_type,
             level="ATENÇÃO",
@@ -38,6 +45,8 @@ class History(db.Model):
         #if History.query.filter_by(message=message).first():
         #    return
         
+        logger.error(f"Historico {alert_type} {message}")
+
         a = History(
             alert_type=alert_type,
             level="ERRO",

@@ -184,6 +184,7 @@ class StatusControl:
             
             # passamos pelas missoes cadastradas no navithor...
             for nt_m in navithor_missions:
+    
                 navithor_id = nt_m["Id"]
                 navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
 
@@ -205,21 +206,21 @@ class StatusControl:
                     if l_m.id_server == navithor_id and l_m.id_local == local_id and l_m.step_id==idx_step:
                         existsOnNavithor = True
                         if l_m.status != nt_s["StepStatus"]:
-                            self.logger.info(f"Missão atualizada: id_local={local_id}, id_server={navithor_id} passo {idx_step} posicao {nt_s['CurrentTargetId']} status {l_m.status} => {nt_s['StepStatus']}")
+                            self.logger.info(f"id({local_id}) Missão atualizada: id_local={local_id}, id_server={navithor_id} passo {idx_step} posicao {nt_s['CurrentTargetId']} status {l_m.status} => {nt_s['StepStatus']}")
 
                             # atualizamos as ocupacoes das posicoes no navithor de acordo com as movimentacoes atuais.
                             # isso tem mais um papel de auto correcao em caso de erro de box ocupado no navithor.
                             if nt_s["StepStatus"]=="DrivingToPickup":# or nt_s["StepStatus"]=="PickingUp" :
                                 # entao a posicao de destino deve estar marcada como OCUPADA.
                                 if self.comm.get_position_occupation(l_m.position_target)==False:
-                                    self.logger.warning(f"Posicao {l_m.position_target} nao tinha ocupacao no navithor. Marcamos como ocupada para poder efetuar a carga.")
+                                    self.logger.warning(f"id({local_id}) Posicao {l_m.position_target} nao tinha ocupacao no navithor. Marcamos como ocupada para poder efetuar a carga.")
                                     self.comm.set_position_occupation(l_m.position_target, occupied=True)
 
 
                             if nt_s["StepStatus"]=="DrivingToDropoff":# or nt_s["StepStatus"]=="DroppingOff" :
                                 # entao a posicao de destino deve estar marcada como LIVRE.
                                 if self.comm.get_position_occupation(l_m.position_target)==True:
-                                    self.logger.warning(f"Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
+                                    self.logger.warning(f"id({local_id}) Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
                                     self.comm.set_position_occupation(l_m.position_target, occupied=False)
 
 
@@ -238,12 +239,13 @@ class StatusControl:
 
                                         sku_in_buffer = self.buffers.get_sku_from_row(buffer_id, row_id)
 
-                                        if sku!=sku_in_buffer:
-                                            self.logger.info(f"SETANDO SKU DO BUFFER DE {sku_in_buffer} para {sku}")
-                                            if sku_in_buffer!=None:
-                                                self.logger.error(f"INESPERADO!! SKU DO BUFFER MUDOU DE {sku_in_buffer} para {sku}")
+                                        if self.buffers.is_row_with_sku_editable(buffer_id, row_id):
+                                            if sku!=sku_in_buffer:
+                                                self.logger.info(f"id({local_id}) SETANDO SKU DO BUFFER DE {sku_in_buffer} para {sku}")
+                                                if sku_in_buffer!=None:
+                                                    self.logger.error(f"id({local_id}) INESPERADO!! SKU DO BUFFER MUDOU DE {sku_in_buffer} para {sku}")
 
-                                            self.buffers.set_sku_to_row(buffer_id, row_id, sku)
+                                                self.buffers.set_sku_to_row(buffer_id, row_id, sku)
 
                             # atualizamos o status no banco.
                             l_m.status = nt_s["StepStatus"]
@@ -267,7 +269,7 @@ class StatusControl:
                                         self.buffers.set_position_ocupation_by_tag_pos(target_pos,  occupied=False)
 
                                         # auto limpeza do sku com rua...
-                                        self.logger.info("Verificando necessidade de liberação da rua para novo sku...")
+                                        self.logger.info(f"id({local_id}) Verificando necessidade de liberação da rua para novo sku...")
                                         self.buffers.clear_sku_row_with_no_occupation()
 
                                     if nt_s["StepType"]=="Dropoff": 
@@ -276,13 +278,22 @@ class StatusControl:
 
                                         
                                 else:
-                                    self.logger.info(f"Passo da missão foi finalizada em na posição {target_pos} que não é buffer.")
+                                    self.logger.info(f"id({local_id}) Passo da missão foi finalizada em na posição {target_pos} que não é buffer.")
+                
+                #<fim loop steps navithor> 
 
-            if not existsOnNavithor or l_m.status=="Complete":
+            #<fim loop missoes navithor> 
+
+            if not existsOnNavithor or navithor_main_state=="Completed":
                 # seta como concluido.
-                self.logger.info(f"Passo da missão {l_m.id_server} (id local:{l_m.id_local}) finalizado, ou não existe mais no navithor. Finalizamos.")
+                if not existsOnNavithor:
+                    self.logger.warning(f"id({l_m.id_local}) Missão id {l_m.id_server} sumiu do navithor! Abortado? Finalizaremos...")              
+                else:
+                    self.logger.info(f"id({l_m.id_local}) Missão id {l_m.id_server} foi completada!")
+
+                
                 if l_m.status!="Complete":
-                    self.logger.error(f"O passo foi finalizado fora de ciclo! Ultimo status: {l_m.status}")
+                    self.logger.error(f"id({l_m.id_local}) Missão foi finalizada mas não identificamos se foi completado! Ultimo status conhecido: {l_m.status}")
 
                 l_m.status = "FINALIZADO"
 
@@ -304,8 +315,8 @@ class StatusControl:
 
                     button_call.info = ' | '.join([info_mission, info_call])
                     
+                self.logger.info(f"Status chamado: {button_call}")
 
-
-        self.db.session.commit()
+            self.db.session.commit()
         
 

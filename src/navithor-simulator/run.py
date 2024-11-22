@@ -17,7 +17,7 @@ def generate_random_token(length=32):
 
 def generate_internal_id():
     """Gera um ID interno aleatório"""
-    return f"ID-{''.join(random.choice(string.digits) for _ in range(8))}"
+    return f"{''.join(random.choice(string.digits) for _ in range(8))}"
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
@@ -59,6 +59,11 @@ def handle_request(path=""):
     # Para LoadAtLocation, incluímos o estado atual do position na resposta
     if path == "api/LoadAtLocation" and request.method == 'GET':
         response_data["LoadCount"] = position_states.get(request.json.get('symbolicPointId'))
+
+    if path == "api/GetMissions":
+        response_data = []
+
+    #print(response_data)
     
     return jsonify(response_data)
 
