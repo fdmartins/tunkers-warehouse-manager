@@ -283,8 +283,8 @@ class StatusControl:
                 #<fim loop steps navithor> 
 
             #<fim loop missoes navithor> 
-
-            if not existsOnNavithor or navithor_main_state=="Completed":
+            if not existsOnNavithor or l_m.status=="Complete":
+                
                 # seta como concluido.
                 if not existsOnNavithor:
                     self.logger.warning(f"id({l_m.id_local}) Missão id {l_m.id_server} sumiu do navithor! Abortado? Finalizaremos...")              
@@ -317,6 +317,6 @@ class StatusControl:
                     
                 self.logger.info(f"Status chamado: {button_call}")
 
-            self.db.session.commit()
+        self.db.session.commit()
         
 

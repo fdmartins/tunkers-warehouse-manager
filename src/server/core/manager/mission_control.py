@@ -19,6 +19,8 @@ class MissionControl:
         self.db = db
 
         self.comm = comm
+        
+        self.buffer = buffer
 
         self.steps_generator = StepsMachineGenerator(db, buffer)
 
@@ -63,17 +65,46 @@ class MissionControl:
 
     def isStepsAllowed(self, steps):
         # verifica se os proximos passos ja tem alguma posicao em execucao enviado ao navithor.
-        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
 
         positions_steps = []
         for s in steps:
             positions_steps.append(s["AllowedTargets"][0]["Id"])
 
+
+        # verificamos quais ruas estao reservadas para os movimentos em execucao.
+        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
+        reserved = []
+        for l_m in local_missions:
+            self.logger.info(f"... posicao escalada {l_m.position_target}")
+            # buscamos qual areaid e rowid da posicao em execucao...
+            area_id, row_id = self.buffer.find_area_and_row_of_position(l_m.position_target)
+
+            # buscamos todas posicoes associadas a esta rua.
+            positions = []
+            if area_id!=None and row_id!=None:
+                positions = self.buffer.get_row_positions(area_id, row_id)
+            
+            self.logger.info(f"posicoes reservadas {positions}")
+            # armazenamos todas posicoes reservadas
+            for p in positions:
+                reserved.append(p['pos'])
+
+        for p in positions_steps:
+            if p in reserved:
+                return False, "Aguardando finalizar missão em andamento em mesma rua de buffer ou expedição. "
+
+
+
+        # para posicoes que nao buffer...
+        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
         for l_m in local_missions: 
             if l_m.position_target in positions_steps:
-                return False
+                return False, f"Aguardando finalizar missão em andamento com mesma posição ({l_m.position_target})"
+            
 
-        return True 
+
+
+        return True, ""
     
     
 
@@ -93,8 +124,9 @@ class MissionControl:
             # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
             # varremos steps, verificamos se alguma posicao ja foi enviada ao navithor e ainda esta com status diferente de Completed.
             if steps!=None:
-                if self.isStepsAllowed(steps)==False:
-                    btn_call.info = f"Aguardando finalizar missão anterior com posições coincidentes..."
+                allowed, message = self.isStepsAllowed(steps)
+                if allowed==False:
+                    btn_call.info = message 
                     self.logger.warning("Já existe missão para mesma posição, aguardamos...")
                     steps = None
 

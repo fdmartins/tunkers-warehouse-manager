@@ -60,7 +60,7 @@ class SAMPS:
 
         # carregamos o carretel nao conforme na entrada.
         tag_load = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
-        steps.insert(StepType.Dropoff, tag_load)
+        steps.insert(StepType.Pickup, tag_load)
 
         tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
         if tag_unload==None:
@@ -78,7 +78,7 @@ class SAMPS:
 
         # carregamos o carretel errado na entrada.
         tag_load = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
-        steps.insert(StepType.Dropoff, tag_load)
+        steps.insert(StepType.Pickup, tag_load)
 
         # descarregamos o carretel no buffer com o sku corrigido.
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
