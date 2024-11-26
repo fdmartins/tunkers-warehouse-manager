@@ -210,14 +210,14 @@ class StatusControl:
 
                             # atualizamos as ocupacoes das posicoes no navithor de acordo com as movimentacoes atuais.
                             # isso tem mais um papel de auto correcao em caso de erro de box ocupado no navithor.
-                            if nt_s["StepStatus"]=="DrivingToPickup":# or nt_s["StepStatus"]=="PickingUp" :
+                            if nt_s["StepStatus"]=="DrivingToPickup" or nt_s["StepStatus"]=="WaitingForLoad":
                                 # entao a posicao de destino deve estar marcada como OCUPADA.
                                 if self.comm.get_position_occupation(l_m.position_target)==False:
                                     self.logger.warning(f"id({local_id}) Posicao {l_m.position_target} nao tinha ocupacao no navithor. Marcamos como ocupada para poder efetuar a carga.")
                                     self.comm.set_position_occupation(l_m.position_target, occupied=True)
 
 
-                            if nt_s["StepStatus"]=="DrivingToDropoff":# or nt_s["StepStatus"]=="DroppingOff" :
+                            if nt_s["StepStatus"]=="DrivingToDropoff":
                                 # entao a posicao de destino deve estar marcada como LIVRE.
                                 if self.comm.get_position_occupation(l_m.position_target)==True:
                                     self.logger.warning(f"id({local_id}) Posicao {l_m.position_target} esta como ocupada no navithor. Liberamos para poder efetuar a carga.")
