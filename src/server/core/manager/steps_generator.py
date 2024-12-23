@@ -1,3 +1,4 @@
+from ..models.mission import Mission
 from ..protocols.defines import StepType
 import logging
 from .steps import STEPS
@@ -32,7 +33,7 @@ class StepsMachineGenerator:
 
 
 
-    def get_steps(self, btn_call, pre_check=False):
+    def get_steps(self, btn_call, pre_check=False, extension=False):
         steps = None
 
         #### VERIFICAMOS E JA EXISTE CHAMADO DESTE MAQUINA "E" COM MESMA ACAO (ABASTECE/RETIRA), SE SIM, RECUSAMOS #### 
@@ -52,17 +53,28 @@ class StepsMachineGenerator:
                 btn_call.mission_status = "FINALIZADO_ERRO"
                 return steps
 
+
+        # buscamos se existem steps para este chamado...
+        actual_steps = 0
+        local_missions = Mission.query.filter(Mission.id_local==btn_call.id).all()
+        for l_m in local_missions:   
+            actual_steps+=1
+
         #### AREA A #####
 
         if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489, 670]:
             # maquina RETROFILA
-            if btn_call.action_type=="RETIRA" and btn_call.situation!="NAO_CONFORME":
+            if btn_call.action_type=="RETIRA" and btn_call.situation != "NAO_CONFORME":
                 # carretel cheio na entrada e retira carretel vazio
-                steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_cheio(btn_call)    
+                steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_cheio(btn_call, actual_steps)    
 
-            elif btn_call.action_type=="RETIRA" and btn_call.situation=="NAO_CONFORME":
+            elif btn_call.action_type=="RETIRA" and btn_call.situation == "NAO_CONFORME":
                 # carretel cheio nao conforme e retira carretel vazio
                 steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_nao_conforme(btn_call)   
+
+            elif btn_call.action_type=="RETIRA_SAIDA":
+                # carretel cheio nao conforme e retira carretel vazio
+                steps = self.machine_retrofi.retira_carretel_cheio(btn_call)   
 
             elif btn_call.action_type=="ABASTECE_ENTRADA":
                 # carretel cheio na entrada e retira carretel vazio
@@ -79,6 +91,10 @@ class StepsMachineGenerator:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
                 steps = self.machine_samps.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+
+            if btn_call.action_type=="ABASTECE" and btn_call.situation=="NAO_CONFORME":
+                # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+                steps = self.machine_samps.abastece_carretel_cheio_nao_conforme_retira_carretel_vazio(btn_call)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="NAO_CONFORME":
                 # retira carretel na entrada da maquina

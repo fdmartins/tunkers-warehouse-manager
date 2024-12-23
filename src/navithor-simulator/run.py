@@ -10,6 +10,8 @@ request_counter = 0
 # Dicionário para armazenar o estado dos positions
 position_states = {}
 
+missions = {}
+
 def generate_random_token(length=32):
     """Gera um token aleatório"""
     characters = string.ascii_letters + string.digits
@@ -60,8 +62,46 @@ def handle_request(path=""):
     if path == "api/LoadAtLocation" and request.method == 'GET':
         response_data["LoadCount"] = position_states.get(request.json.get('symbolicPointId'))
 
+    if path == "api/missioncreate":
+        missions.setdefault(request.json.get('ExternalId'), request.json)
+
+        if request.json.get('ExternalId') in missions:
+            #for s in request.json.get('Steps'):
+            #    missions[request.json.get('ExternalId')]['Steps'].append(s)
+            missions[request.json.get('ExternalId')]['State'] = 'Inserido'
+            missions[request.json.get('ExternalId')]['Id'] = request.json.get('ExternalId')
+            missions[request.json.get('ExternalId')]['InternalId'] = request.json.get('ExternalId')
+
+        response_data = {"Success":True, 'InternalId':request.json.get('ExternalId'),   'ExternalId': request.json.get('ExternalId') }
+
+
+    if path == "api/MissionExtend":
+        missions.setdefault(request.json.get('ExternalId'), request.json)
+
+        if request.json.get('ExternalId') in missions:
+            for s in request.json.get('Steps'):
+                missions[request.json.get('ExternalId')]['Steps'].append(s)
+            #missions[request.json.get('ExternalId')]['State'] = 'Inserido'
+            #missions[request.json.get('ExternalId')]['Id'] = request.json.get('ExternalId')
+            #missions[request.json.get('ExternalId')]['InternalId'] = request.json.get('ExternalId')
+
+        response_data = {"Success":True, 'InternalId':request.json.get('ExternalId'),   'ExternalId': request.json.get('ExternalId') }
+
+
+
     if path == "api/GetMissions":
         response_data = []
+        for m in missions.keys():
+            print(missions[m])
+
+            missions[m]['AssignedMachineId']=-1
+            missions[m]['CurrentStepIndex']=0
+            
+            for s in missions[m]['Steps']:
+                s['StepStatus']="inserido"
+                s['CurrentTargetId'] = s['AllowedTargets'][0]["Id"]
+            
+            response_data.append(missions[m])
 
     #print(response_data)
     

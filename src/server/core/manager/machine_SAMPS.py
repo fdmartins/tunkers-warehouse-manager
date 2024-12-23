@@ -54,7 +54,42 @@ class SAMPS:
 
         return steps.getSteps()
 
+    def abastece_carretel_cheio_nao_conforme_retira_carretel_vazio(self, btn_call):
+        # novo - proposta 20241205
+
+        steps = STEPS()
+
+        # buscamos carretel cheio no buffer de cheios (id 2)
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL N/C", buffers_allowed=[3, ])
+        if tag_load==None:
+            self.logger.error(f"Não existe carretel com skuCARRETEL N/C no buffer 3! ")
+            btn_call.info = f"Sem carretel sku CARRETEL N/C no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
+            return None
+
+        steps.insert(StepType.Pickup, tag_load)
+
+        # descarrega carretel cheio na maquina.
+        tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
+        steps.insert(StepType.Dropoff, tag_unload)
+
+        # carrega carretel vazio na maquina.
+        tag_load = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_VAZIO"]
+        steps.insert(StepType.Pickup, tag_load)
+
+        # descarrega carretel vazio no buffer. (id 1)
+        tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        if tag_unload==None:
+            self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
+            btn_call.info = f"Sem vagas no buffer! "
+            btn_call.mission_status = "FINALIZADO_ERRO"
+            return None
+            
+        steps.insert(StepType.Dropoff, tag_unload)
+
+        return steps.getSteps()
     
+
     def retira_carretel_nao_conforme(self, btn_call):
         steps = STEPS()
 

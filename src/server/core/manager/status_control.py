@@ -294,6 +294,7 @@ class StatusControl:
                 
                 if l_m.status!="Complete":
                     self.logger.error(f"id({l_m.id_local}) Missão foi finalizada mas não identificamos se foi completado! Ultimo status conhecido: {l_m.status}")
+                    l_m.info = f"Missão sumiu do Navithor com ultimo status conhecido como {l_m.status}. Abortada? "
 
                 l_m.status = "FINALIZADO"
 

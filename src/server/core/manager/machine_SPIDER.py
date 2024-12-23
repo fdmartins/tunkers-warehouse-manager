@@ -24,7 +24,7 @@ class SPIDER:
         steps.insert(StepType.Pickup, tag_load)
 
         # descarreta pallete cheio no buffer.
-        buffers_allowed = [7, ]
+        buffers_allowed = [5, ] # 5=J1,  7=J2 
         if btn_call.sku in ["40479815"]:
              buffers_allowed = [8, ] # regiao L
 

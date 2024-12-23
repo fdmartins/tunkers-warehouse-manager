@@ -1,0 +1,139 @@
+{
+        "Produtos": {
+ 
+          "0,8": {
+            "BE14   ": {
+              "SKU": "40478932",
+              "material_type": "BOBINA"
+            }
+          },
+          "0,9": {
+            "BE13  ESPECIAL ": {
+              "SKU": "40402028",
+              "material_type": "BOBINA"
+            },
+            "BE14  ": {
+              "SKU": "40478933",
+              "material_type": "BOBINA"
+            },
+            "BE08 ESPECIAL ": {
+              "SKU": "40451924",
+              "material_type": "BOBINA"
+            }
+          },
+          "1": {
+                "BE13 ESPECIAL ": {
+                  "SKU": "40402026",
+                  "material_type": "BOBINA"
+                },
+                "BE14  ": {
+                  "SKU": "40478935",
+                  "material_type": "BOBINA"
+                },
+                "BE14 OLEADO ": {
+                  "SKU": "40457605",
+                  "material_type": "BOBINA"
+                },
+                "COPPER FREE": {
+                  "SKU": "40479228",
+                  "material_type": "BOBINA"
+                },
+                "BE17 ESPECIAL ": {
+                  "SKU": "40455588",
+                  "material_type": "BOBINA"
+                },
+                "BE08 ESPECIAL ": {
+                  "SKU": "40451869",
+                  "material_type": "BOBINA"
+                },
+                "BE29 ESPECIAL ": {
+                  "SKU": "40452019",
+                  "material_type": "BOBINA"
+                },
+                "LATONADO ": {
+                  "SKU": "40450954",
+                  "material_type": "BOBINA"
+                }
+              },
+          "1,2": {
+            "BE13 ESPECIAL ": {
+              "SKU": "40451344",
+              "material_type": "BOBINA"
+            },
+            "BE14  ": {
+              "SKU": "40478976",
+              "material_type": "BOBINA"
+            },
+            "COPPER FREE": {
+              "SKU": "40479227",
+              "material_type": "BOBINA"
+            },
+            "BE17 ESPECIAL ": {
+              "SKU": "40455820",
+              "material_type": "BOBINA"
+            },
+            "BE08 ESPECIAL ": {
+              "SKU": "40451888",
+              "material_type": "BOBINA"
+            },
+            "BE29 ESPECIAL ": {
+              "SKU": "40452090",
+              "material_type": "BOBINA"
+            },
+            "BE14 COM PASTA": {
+              "SKU": "40496179",
+              "material_type": "BOBINA"
+            },
+            "LATONADO ": {
+              "SKU": "40450953",
+              "material_type": "BOBINA"
+            },
+            "MA2 ": {
+              "SKU": "40494018",
+              "material_type": "BOBINA"
+            }
+          },
+          "1,32": {
+            "BE13 ESPECIAL ": {
+              "SKU": "40469376",
+              "material_type": "BOBINA"
+            },
+            "BE14  ": {
+              "SKU": "40478977",
+              "material_type": "BOBINA"
+            },
+            "COPPER FREE ": {
+              "SKU": "40479229",
+              "material_type": "BOBINA"
+            }
+          },
+          "1,4": {
+            "BE14  ": {
+              "SKU": "40493852",
+              "material_type": "BOBINA"
+            }
+          },
+          "1,57": {
+            "BE14  ": {
+              "SKU": "40459888",
+              "material_type": "BOBINA"
+            }
+          },
+          "1,59": {
+            "BE21 ESPECIAL ": {
+              "SKU": "40405142",
+              "material_type": "BOBINA"
+            }
+          },
+          "1,6": {
+            "BE29 ESPECIAL ": {
+              "SKU": "40460047",
+              "material_type": "BOBINA"
+            },
+            "COPPER FREE": {
+              "SKU": "40479230",
+              "material_type": "BOBINA"
+            }
+          }
+        }
+      }
