@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify, render_template, Response
 from core import db, app
-from core.models import ButtonCall, ButtonStatus, Buffer
+from core.models import ButtonCall, ButtonStatus, Buffer, ProdutosCompleto, ProdutosResumido
 import hashlib
 from datetime import datetime
 import logging
 import json
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 from ..manager.steps_generator import StepsMachineGenerator
 import traceback
 
@@ -44,6 +44,24 @@ def list_call():
 
     # Retorna a resposta como um Response para garantir a ordem das chaves
     return Response(json_output, mimetype='application/json')
+
+
+
+@app.route('/v1/button/call/abort/<id>', methods=['POST'])
+def abort_call():
+
+    call_ret = ButtonCall.query.filter_by(id=id).first()
+    
+    if call_ret==None:
+        return jsonify({'status': False, "message":f"Chamado nao existe!" }), 404
+    
+    call_ret.mission_status = "ABORTAR"
+
+    db.session.commit()
+
+    return jsonify({'status': True, "message":f"Abortando..." }), 200
+
+
 
 
 @app.route('/v1/button/call', methods=['POST'])
@@ -172,6 +190,71 @@ def list_comm():
             'Último Chamado': c.last_call,
             'Última Comunicação': c.last_life,
         })
+
+    # Usa json.dumps para garantir a ordem das chaves como informado acima.
+    json_output = json.dumps(output, default=str, indent=4)
+
+    # Retorna a resposta como um Response para garantir a ordem das chaves
+    return Response(json_output, mimetype='application/json')
+
+
+
+@app.route('/v1/button/config/produtos.json', methods=['GET'])
+def config_produtos_resumido():
+    """
+    {
+        "Produtos": {
+ 
+          "0,8": {
+            "BE14   ": {
+              "SKU": "40478932",
+              "material_type": "BOBINA"
+            }
+          },
+
+        }
+    }
+    """
+
+    products = ProdutosResumido.query.order_by(asc(ProdutosResumido.bitola)).all()
+
+    output = {"Produtos": {}}
+
+    for p in products:
+        output["Produtos"].setdefault(p.bitola, {})
+        output["Produtos"][p.bitola].setdefault(p.nome, {})
+        output["Produtos"][p.bitola][p.nome]["SKU"] = p.sku
+        output["Produtos"][p.bitola][p.nome]["material_type"] = p.tipo
+
+    # Usa json.dumps para garantir a ordem das chaves como informado acima.
+    json_output = json.dumps(output, default=str, indent=4)
+
+    # Retorna a resposta como um Response para garantir a ordem das chaves
+    return Response(json_output, mimetype='application/json')
+
+
+@app.route('/v1/button/config/qrcodeprod.json', methods=['GET'])
+def config_produtos_completo():
+    """
+    {
+        "Produtos": {
+        
+            "40479024": {"Nome":"AR RETR COB 0,79MM BE14","material_type": "BOBINA"},
+            "40478932": {"Nome":"AR RETR COB 0,80MM BE14","material_type": "BOBINA"},
+            "40479135": {"Nome":"AR RETR COB 0,89MM BE14","material_type": "BOBINA"},
+
+        }
+    }
+    """
+
+    products = ProdutosCompleto.query.order_by(asc(ProdutosCompleto.nome)).all()
+
+    output = {"Produtos": {}}
+
+    for p in products:
+        output["Produtos"].setdefault(p.sku, {})
+        output["Produtos"][p.sku]["Nome"] = p.nome
+        output["Produtos"][p.sku]["material_type"] = p.tipo
 
     # Usa json.dumps para garantir a ordem das chaves como informado acima.
     json_output = json.dumps(output, default=str, indent=4)

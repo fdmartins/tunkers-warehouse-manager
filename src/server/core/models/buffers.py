@@ -4,6 +4,7 @@ import configparser
 import logging
 import json 
 from ..utils import FileRef
+from ..models.mission import Mission
 
 class Buffer:
     """
@@ -34,10 +35,15 @@ class Buffer:
             for key in config[section]:
                 if key.startswith('rua'):
                     # Obtém a lista de posições para cada rua
-                    positions = list(map(int, config.get(section, key).split(',')))
+                    parts = config.get(section, key).split(';')
+                    positions = list(map(int, parts[0].split(',')))
+                    wait_position = int(parts[1].split('=')[1]) if len(parts) > 1 else 0
+                    #positions = list(map(int, config.get(section, key).split(',')))
+                    
                     ruas.append({
                         'id': int(key[3:]),  # Extrai o ID da rua
-                        'positions': positions
+                        'positions': positions,
+                        'wait_position' : wait_position
                     })
             
             section_dict['buffer_id'] = int(section)
@@ -52,6 +58,41 @@ class Buffer:
         #self.logger.info(json.dumps(self.buffers, indent=4) )
 
 
+    def get_actual_missions_moving(self):
+        # retorna os steps de missoes não finalizadas.
+        local_missions = Mission.query.filter(Mission.status!='FINALIZADO', Mission.status!='Complete').all()
+
+        actual_moving = {}
+
+        for m in local_missions:
+            area_id, row_id = self.find_area_and_row_of_position(m["position_target"])
+            actual_moving.setdefault((area_id, row_id), 0)
+            actual_moving[area_id, row_id]+=1
+
+        return actual_moving
+    
+    def get_wait_pos_by_area_and_row(self, area_id, row_id):
+        if area_id==None:
+            return None
+        
+        buffer = self.get_buffer_by_id(area_id)
+        
+        for row in buffer['rows']:
+            if row["id"] == row_id:
+                if row["wait_position"]!=0:
+                    return row["wait_position"]
+
+        return None
+
+    def get_wait_pos_of(self, pos):
+        area_id, row_id = self.find_area_and_row_of_position(pos)
+        
+        wait_pos = self.get_wait_pos_by_area_and_row(area_id, row_id)
+
+        if wait_pos==None:
+            return pos
+
+        return wait_pos
 
     def get_row_positions(self, area_id, row_id):
         buffer = self.get_buffer_by_id(area_id)
@@ -87,6 +128,8 @@ class Buffer:
 
     def get_occupied_pos_of_sku(self, sku, buffers_allowed):
         # retorna a primeira posicao acessivel pela rua.
+        # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
+        actual_moving_row = self.get_actual_missions_moving()
 
         all_ret = BufferSKURow.query.filter_by(sku=sku).all()
 
@@ -97,11 +140,22 @@ class Buffer:
         for ret in all_ret:
             if ret.area_id in buffers_allowed:
                 row = self.get_row_positions(ret.area_id, ret.row_id)
+
+                # Verifica se a quantidade de movimentos na rua atual é maior ou igual às posições ocupadas
+                current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
+
+                occupied_positions = sum(1 for item in row if item['occupied'])
+            
+                if current_movements >= occupied_positions:
+                    # nunca deve ser MAIOR, mas consideramos >=.
+                    # ja tem agvs se movimentando para esta rua e que comprometerá as posicoes.
+                    continue
                 
                 # varremos a rua da direita para esquerda até encontrar a primeira posicao OCUPADA.
                 for item in reversed(row):
                     if item['occupied']==True:
                         return item['pos'], ret.area_id
+            
             
         return None, None
 
@@ -180,6 +234,11 @@ class Buffer:
         return None, None
 
     def get_free_pos(self, sku, buffers_allowed):
+        """
+        retorna a primeira posicao vazia da rua do buffer. 
+        """
+        # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
+        actual_moving_row = self.get_actual_missions_moving()
 
         # TESTAR get_free_pos_POR_PRIORIDADE (aguarde proposta adicional.)
 
@@ -189,6 +248,13 @@ class Buffer:
         ret_all = BufferSKURow.query.filter_by(sku=sku).all()
 
         for ret in ret_all:
+            row = self.get_row_positions(ret.area_id, ret.row_id)
+            current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
+            empty_positions = sum(1 for item in row if not item['occupied'])
+            
+            if current_movements >= empty_positions:
+                continue
+
             # este sku ja tem em alguma rua...
             free_pos_id_test, free_area_id_test = self.get_first_free_pos_in_row(ret.area_id, ret.row_id)
 
@@ -209,16 +275,20 @@ class Buffer:
                     for row in buffer['rows']:
                         ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row["id"]).one_or_none()
                         if ret==None:
+                            row_positions = self.get_row_positions(area_id, row["id"])
+                            current_movements = actual_moving_row.get((area_id, row["id"]), 0)
+                            empty_positions = sum(1 for item in row_positions if not item['occupied'])
+                            
+                            if current_movements >= empty_positions:
+                                continue
+
                             free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
                             if free_pos_id!=None:
                                 # nesse buffer e nessa rua foi encontrado posicao livre.
                                 self.logger.debug(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
                                 return free_pos_id, free_area_id 
-            
-        
-        
 
-            
+
         return free_pos_id, free_area_id 
     
     def clear_sku_row_with_no_occupation(self):
@@ -354,6 +424,9 @@ class Buffer:
         for area_id, buffer in self.buffers.items():
             for row in buffer['rows']:
                 if pos_id in row["positions"]:
+                    return area_id, row["id"]
+                
+                if pos_id == row["wait_position"]:
                     return area_id, row["id"]
                 
         return None, None

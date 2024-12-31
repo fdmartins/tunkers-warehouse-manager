@@ -125,7 +125,8 @@ class MissionControl:
         button_calls = ButtonCall.query.filter(
                                                 or_(
                                                     ButtonCall.mission_status=='PENDENTE',
-                                                    ButtonCall.mission_status=='EXECUTANDO'
+                                                    ButtonCall.mission_status=='EXECUTANDO',
+                                                    ButtonCall.mission_status=='ABORTAR',
                                                 )
                                             ).all()
         
@@ -163,6 +164,17 @@ class MissionControl:
                     self.logger.info("Nenhum status de WaitingExtension...")
                     continue
         
+            if btn_call.mission_status=="ABORTAR":
+                # abortamos no navithor...
+                # concluimos o chamado.
+                id_server = self.comm.abort_mission(id_local=btn_call.id)
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                btn_call.info = "Missão abortada pelo operador"
+                self.logger.warning(f"ABORTADA MISSAO id {btn_call.id}")
+                History.warning("SISTEMA", f"MISSAO {btn_call.id} ABORTADA PELO OPERADOR!")
+                continue
+
+
             steps = self.steps_generator.get_steps(btn_call)
 
             print("="*40)

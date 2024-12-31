@@ -38,7 +38,7 @@ class RETROFI:
 
         if actual_steps==0:
             # posicionamos AGV na entrada do buffer
-            tag_load = 0 # TODO - verificamos qual é o tag intermediario desta tag.
+            tag_load = self.buffers.get_wait_pos_of(tag_load)
             steps.insert(StepType.Drive, tag_load, wait_for_extension=True)
             return steps.getSteps()
 

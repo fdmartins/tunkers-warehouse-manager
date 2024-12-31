@@ -31,7 +31,7 @@ class Navithor:
     def __init__(self, ip="127.0.0.1", port=1234):
         self.logger = logging.getLogger(__name__)
 
-        self.fake = False
+        self.fake = True
         self.fake_pos_occupation = {}
 
         self.ip = ip
@@ -248,6 +248,27 @@ class Navithor:
             return True
 
         return False
+    
 
+    def abort_mission(self, id_local):
+        if self.fake: 
+            return
+
+        endpoint = "/api/MissionAbort" 
+        
+
+        payload = {
+            "ExternalId": id_local,
+        }
+
+        self.logger.debug(payload)
+
+        response =  self.call_api(endpoint, payload, method="POST")
+
+        if response["Success"]==False:
+            self.logger.error(f"Falha ao abortar missão id {id_local}: {response}")
+            raise Exception(f"Falha ao abortar missão id {id_local}: {response}") 
+        
+        return False
         
 

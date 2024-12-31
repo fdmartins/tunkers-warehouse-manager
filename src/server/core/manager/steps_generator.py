@@ -13,6 +13,7 @@ from .machine_BARRICA import BARRICA
 from .machine_CAPACAPA import CAPACAPA
 from .machine_EMBALAGEM_MIMI import EMBALAGEM_MIMI
 from .machine_EMBALAGEM_K import EMBALAGEM_K
+from .machine_NDB import NDB
 
 class StepsMachineGenerator:
     def __init__(self, db, buffer):
@@ -30,7 +31,7 @@ class StepsMachineGenerator:
         self.machine_capacapa = CAPACAPA(self.db , self.buffers)
         self.machine_embalagem_mimi = EMBALAGEM_MIMI(self.db , self.buffers)
         self.machine_embalagem_k = EMBALAGEM_K(self.db , self.buffers)
-
+        self.machine_NDB = NDB(self.db, self.buffers)
 
 
     def get_steps(self, btn_call, pre_check=False, extension=False):
@@ -265,6 +266,15 @@ class StepsMachineGenerator:
                 self.logger.error(f"Acao da botoeira invalida {btn_call.action_type} | {btn_call.situation}")
                 btn_call.info = f"Acao invalida {btn_call.action_type} | {btn_call.situation}"
                 btn_call.mission_status = "FINALIZADO_ERRO"
+
+        #### AREA K - EMBALAGEM K #####
+
+        elif btn_call.id_machine in [2010, 2020, 2030, 2040, 2050]:
+            if btn_call.action_type=="ABASTECE":
+                # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+                steps = self.machine_NDB.entrega_palete(btn_call)
+
+        #### NAO EXISTE #####
 
         else:
             self.logger.error(f"Maquina {btn_call.id_machine} não existe")
