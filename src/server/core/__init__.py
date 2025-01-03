@@ -2,7 +2,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from flask_cors import CORS, cross_origin
-
+import configparser
 from .utils import FileRef
 
 #print(FileRef.get_path('templates'))
@@ -29,7 +29,9 @@ def start():
     from .protocols.navithor import Navithor
 
     comm = Navithor()
-    buffers = Buffer()
+    buffers = Buffer(comm)
+    
+    endpoints.create_endpoints(buffers)
 
     sc = manager.StatusControl(db, buffers, comm)
 

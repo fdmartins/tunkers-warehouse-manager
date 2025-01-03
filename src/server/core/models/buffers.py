@@ -10,10 +10,12 @@ class Buffer:
     """
     Esta classe faz a leitura do .ini que contem a estrutura do buffer. (area, ruas e posicoes)
     """
-    def __init__(self):
+    def __init__(self, navithor_comm):
         self.logger = logging.getLogger(__name__)
 
         self.logger.info(f"Iniciando Buffers")
+
+        self.navithor_comm = navithor_comm
 
         # Cria um objeto ConfigParser
         config = configparser.ConfigParser()
@@ -61,6 +63,21 @@ class Buffer:
     def get_actual_missions_moving(self):
         # retorna os steps de missoes não finalizadas.
         local_missions = Mission.query.filter(Mission.status!='FINALIZADO', Mission.status!='Complete').all()
+
+        navithor_missions = self.navithor_comm.get_mission_status() 
+
+        # passamos pelas missoes cadastradas no navithor...
+        for nt_m in navithor_missions:
+
+            navithor_id = nt_m["Id"]
+            navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
+            agv = nt_m["AssignedMachineId"]
+            current_step_index = nt_m["CurrentStepIndex"]
+            steps = nt_m["Steps"]
+
+            # passamos pelos passos de cada missao.
+            for step in steps:
+                print(step)
 
         actual_moving = {}
 

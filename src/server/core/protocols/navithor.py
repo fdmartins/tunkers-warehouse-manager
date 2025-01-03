@@ -6,6 +6,8 @@ import threading
 from typing import Optional, Dict, Any
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+import configparser
+from ..utils import FileRef
 
 class ThreadSafeRequests:
     def __init__(self):
@@ -28,8 +30,17 @@ class ThreadSafeRequests:
 
 
 class Navithor:
-    def __init__(self, ip="127.0.0.1", port=1234):
+    def __init__(self):
         self.logger = logging.getLogger(__name__)
+
+        # Cria um objeto ConfigParser
+        config = configparser.ConfigParser()
+
+        # Lê o arquivo de configuração
+        config.read(FileRef.get_path('./configs/navithor.ini'))
+
+        ip = config.get("comm", 'ip')
+        port = config.get("comm", 'port')
 
         self.fake = True
         self.fake_pos_occupation = {}

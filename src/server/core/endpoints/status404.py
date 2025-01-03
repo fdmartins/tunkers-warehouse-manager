@@ -5,11 +5,12 @@ from core.models import User, Mission
 from functools import wraps
 import logging
 from flask import Flask, redirect, url_for
+from flask import Blueprint
+
+def register_status404_routes():
+    logger = logging.getLogger(__name__)
 
 
-logger = logging.getLogger(__name__)
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return redirect('/')
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return redirect('/')
