@@ -36,46 +36,61 @@ class RETROFI:
         # carrega carretel vazio no buffer.
         tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
 
+        # descarrega carretel CHEIO no buffer. (id 2)
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
+
+
         if actual_steps==0:
+
+            if tag_load==None:
+                self.logger.error(f"Não temos carretel vazio disponivel! ")
+                btn_call.info = f"Sem carretel vazio no buffer"
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                return None
+
             # posicionamos AGV na entrada do buffer
             tag_load = self.buffers.get_wait_pos_of(tag_load)
             steps.insert(StepType.Drive, tag_load, wait_for_extension=True)
             return steps.getSteps()
-
         
-        if tag_load==None:
-            self.logger.error(f"Não temos carretel vazio disponivel! ")
-            btn_call.info = f"Sem carretel vazio no buffer"
-            btn_call.mission_status = "FINALIZADO_ERRO"
-            return None
+        
+        if actual_steps==1:
+            
+            if tag_load==None:
+                self.logger.error(f"Não temos carretel vazio disponivel! ")
+                btn_call.info = f"Sem carretel vazio no buffer"
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                return None
+    
+            steps.insert(StepType.Pickup, tag_load)
 
-        steps.insert(StepType.Pickup, tag_load)
+            # descarrega carretel vazio na maquina.
+            tag_unload = self.machine_positions[btn_call.id_machine]["POS_VAZIO"]
+            steps.insert(StepType.Dropoff, tag_unload)
 
-        # descarrega carretel vazio na maquina.
-        tag_unload = self.machine_positions[btn_call.id_machine]["POS_VAZIO"]
-        steps.insert(StepType.Dropoff, tag_unload)
+            # carrega carretel cheio na maquina.
+            tag_load = self.machine_positions[btn_call.id_machine]["POS_CHEIO"]
+            steps.insert(StepType.Pickup, tag_load)
 
-        # carrega carretel cheio na maquina.
-        tag_load = self.machine_positions[btn_call.id_machine]["POS_CHEIO"]
-        steps.insert(StepType.Pickup, tag_load)
+            if tag_final_unload==None:
+                self.logger.error(f"Não existe vagas para descarregar carretel cheio!")
+                btn_call.info = f"Sem espaco livre no buffer de carretel cheio"
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                return None
+                
+            # posicionamos AGV na entrada do buffer
+            tag_unload = self.buffers.get_wait_pos_of(tag_final_unload)
+            steps.insert(StepType.Drive, tag_unload, wait_for_extension=True)
 
-        # descarrega carretel CHEIO no buffer. (id 2)
-        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
+            return steps.getSteps()
 
-        if tag_unload==None:
+        if tag_final_unload==None:
             self.logger.error(f"Não existe vagas para descarregar carretel cheio!")
             btn_call.info = f"Sem espaco livre no buffer de carretel cheio"
             btn_call.mission_status = "FINALIZADO_ERRO"
             return None
-            
-
-        if actual_steps==4:
-            # posicionamos AGV na entrada do buffer
-            tag_load = 0 # TODO - verificamos qual é o tag intermediario desta tag.
-            steps.insert(StepType.Drive, tag_load, wait_for_extension=True)
-            return steps.getSteps()
-
-        steps.insert(StepType.Dropoff, tag_unload)
+                
+        steps.insert(StepType.Dropoff, tag_final_unload)
 
         return steps.getSteps()
     

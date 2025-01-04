@@ -61,6 +61,8 @@ class StepsMachineGenerator:
         for l_m in local_missions:   
             actual_steps+=1
 
+        self.logger.info(f"Quantidade atual de passos da missao id({btn_call.id}) : {actual_steps}")
+
         #### AREA A #####
 
         if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489, 670]:

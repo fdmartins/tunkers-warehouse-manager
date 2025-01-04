@@ -42,7 +42,7 @@ class Navithor:
         ip = config.get("comm", 'ip')
         port = config.get("comm", 'port')
 
-        self.fake = True
+        self.fake = False
         self.fake_pos_occupation = {}
 
         self.ip = ip
@@ -182,7 +182,7 @@ class Navithor:
         return response
 
 
-    def extend_mission(self, external_id=None, steps=None):
+    def extend_mission(self, id_local=None, steps=None):
         self.logger.info("Enviando Extensão da Missão ao Navithor...")
         #return external_id
     
@@ -190,18 +190,18 @@ class Navithor:
 
         # Define o payload
         payload = {
-            "ExternalId": external_id,
+            "ExternalId": id_local,
             "Steps": steps
         }
 
         response =  self.call_api(endpoint, payload)
 
         if ("success" not in response) and ("Success" not in response):
-            raise Exception(f"Falha Comunicação NAVITHOR - ao criar MissionExtend id {external_id}: {response}") 
+            raise Exception(f"Falha Comunicação NAVITHOR - ao criar MissionExtend id {id_local}: {response}") 
 
         if response["Success"]==False:
-            self.logger.error(f"Falha ao criar MissionExtend id {external_id}: {response}")
-            raise Exception(f"Falha ao criar MissionExtend id {external_id}: {response['Description']}") 
+            self.logger.error(f"Falha ao criar MissionExtend id {id_local}: {response}")
+            raise Exception(f"Falha ao criar MissionExtend id {id_local}: {response['Description']}") 
         
         return response["InternalId"]
 

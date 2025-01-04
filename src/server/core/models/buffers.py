@@ -61,30 +61,34 @@ class Buffer:
 
 
     def get_actual_missions_moving(self):
-        # retorna os steps de missoes não finalizadas.
-        local_missions = Mission.query.filter(Mission.status!='FINALIZADO', Mission.status!='Complete').all()
 
         navithor_missions = self.navithor_comm.get_mission_status() 
 
-        # passamos pelas missoes cadastradas no navithor...
-        for nt_m in navithor_missions:
-
-            navithor_id = nt_m["Id"]
-            navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
-            agv = nt_m["AssignedMachineId"]
-            current_step_index = nt_m["CurrentStepIndex"]
-            steps = nt_m["Steps"]
-
-            # passamos pelos passos de cada missao.
-            for step in steps:
-                print(step)
-
         actual_moving = {}
 
+        # retorna os steps de missoes não finalizadas.
+        # DrivingToWait AGV drives to step wait location.
+        # AtWait AGV is at wait location.
+        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
+
         for m in local_missions:
-            area_id, row_id = self.find_area_and_row_of_position(m["position_target"])
-            actual_moving.setdefault((area_id, row_id), 0)
-            actual_moving[area_id, row_id]+=1
+
+            # passamos pelas missoes cadastradas no navithor...
+            for nt_m in navithor_missions:
+
+                navithor_id = nt_m["Id"]
+                navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
+                agv = nt_m["AssignedMachineId"]
+                current_step_index = nt_m["CurrentStepIndex"]
+                steps = nt_m["Steps"]
+
+                if m.id_server==navithor_id:     
+
+                    if navithor_main_state!="WaitingExtension" : 
+
+                        area_id, row_id = self.find_area_and_row_of_position(m.position_target)
+                        actual_moving.setdefault((area_id, row_id), 0)
+                        actual_moving[area_id, row_id]+=1
 
         return actual_moving
     

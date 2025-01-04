@@ -50,14 +50,19 @@ class MissionControl:
 
                 
     def saveSteps(self, id_local, id_server, steps):
-        
+
+        # verificamos quantos indices ja existem para este id_local.
+        start_step_index = 0 
+
+        start_step_index = Mission.query.filter(Mission.id_local==id_local).count()
+
         for id_step in range(len(steps)):
             s = steps[id_step]
             m = Mission(
                 id_local = id_local,
                 id_server = id_server,
                 status = "ENVIADO AO NAVITHOR",
-                step_id = id_step,
+                step_id = start_step_index + id_step,
                 step_type = s["StepType"] ,
                 
                 position_target = s["AllowedTargets"][0]["Id"]
@@ -65,6 +70,10 @@ class MissionControl:
             self.db.session.add(m)
 
         self.db.session.commit()
+
+
+    def redundantSteps(self, steps):
+        return False
 
     def isStepsAllowed(self, steps):
         # verifica se os proximos passos ja tem alguma posicao em execucao enviado ao navithor.
@@ -104,11 +113,11 @@ class MissionControl:
 
 
 
-        # para posicoes que nao buffer...
-        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
-        for l_m in local_missions: 
-            if l_m.position_target in positions_steps:
-                return False, f"Aguardando finalizar missão em andamento com mesma posição ({l_m.position_target})"
+            # para posicoes que nao buffer...
+            local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
+            for l_m in local_missions: 
+                if l_m.position_target in positions_steps:
+                    return False, f"Aguardando finalizar missão em andamento com mesma posição ({l_m.position_target})"
             
 
         return True, ""
@@ -192,6 +201,12 @@ class MissionControl:
 
             if steps==None:
                 self.logger.info("Nenhuma missão a ser enviada.")
+                continue
+
+            # no caso de WaitingExtension, se o navithor não atualizar imediato o status da missão, pode ser que tentamos reenviar.
+            # aqui protegemos de reenvio.
+            if self.redundantSteps(steps):
+                self.logger.warning("Essas etapas já foram enviadas. Ignorando.")
                 continue
 
             # enviamos ao navithor. 

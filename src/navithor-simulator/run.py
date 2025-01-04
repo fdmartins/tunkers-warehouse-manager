@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import random
 import string
+import datetime
 
 app = Flask(__name__)
 
@@ -9,6 +10,18 @@ request_counter = 0
 
 # Dicionário para armazenar o estado dos positions
 position_states = {}
+
+missions = {
+    101: {
+        'ExternalId': 101, 'Name': 'Gerenciador Tunkers', 'Options': {'Priority': 3}, 
+        'Steps': [
+            {'StepType': 'Pickup', 'Options': {'SortingRules': ['Priority', 'Closest'], 'WaitForExtension': False}, 'AllowedTargets': [{'Id': 5007}], 'AllowedWaits': [], 'StepStatus': 'inserido', 'CurrentTargetId': 5007},
+            {'StepType': 'Dropoff', 'Options': {'SortingRules': ['Priority', 'Closest'], 'WaitForExtension': False}, 'AllowedTargets': [{'Id': 250}], 'AllowedWaits': [], 'StepStatus': 'inserido', 'CurrentTargetId': 250}
+            ], 
+            
+            'State': "Inserido", 'Id': 101, 'InternalId': 101, 'AssignedMachineId': -1, 'CurrentStepIndex': 0} 
+            
+            }
 
 missions = {}
 
@@ -65,22 +78,42 @@ def handle_request(path=""):
     if path == "api/missioncreate":
         missions.setdefault(request.json.get('ExternalId'), request.json)
 
-        if request.json.get('ExternalId') in missions:
-            #for s in request.json.get('Steps'):
-            #    missions[request.json.get('ExternalId')]['Steps'].append(s)
-            missions[request.json.get('ExternalId')]['State'] = 'Inserido'
-            missions[request.json.get('ExternalId')]['Id'] = request.json.get('ExternalId')
-            missions[request.json.get('ExternalId')]['InternalId'] = request.json.get('ExternalId')
+        print(request.json)
+
+        steps = request.json.get('Steps')
+
+        for s in steps:
+            if "StepStatus" not in s:
+                s["StepStatus"] = "inserido"
+
+        
+        
+        missions[request.json.get('ExternalId')]['State'] = request.json.get('State')
+        missions[request.json.get('ExternalId')]['Id'] = request.json.get('ExternalId')
+        missions[request.json.get('ExternalId')]['InternalId'] = request.json.get('ExternalId')
+        missions[request.json.get('ExternalId')]['Steps'] = steps
+        missions[request.json.get('ExternalId')]['Date'] = datetime.datetime.now()
 
         response_data = {"Success":True, 'InternalId':request.json.get('ExternalId'),   'ExternalId': request.json.get('ExternalId') }
+
 
 
     if path == "api/MissionExtend":
         missions.setdefault(request.json.get('ExternalId'), request.json)
 
+
         if request.json.get('ExternalId') in missions:
-            for s in request.json.get('Steps'):
+            missions[request.json.get('ExternalId')]["State"] = "Executing"
+
+            steps = request.json.get('Steps')
+
+            for s in steps:
+                if "StepStatus" not in s:
+                    s["StepStatus"] = "inserido"
+
+            for s in steps:
                 missions[request.json.get('ExternalId')]['Steps'].append(s)
+                
             #missions[request.json.get('ExternalId')]['State'] = 'Inserido'
             #missions[request.json.get('ExternalId')]['Id'] = request.json.get('ExternalId')
             #missions[request.json.get('ExternalId')]['InternalId'] = request.json.get('ExternalId')
@@ -90,7 +123,14 @@ def handle_request(path=""):
 
 
     if path == "api/GetMissions":
+        
+        
+        for m_id in missions:
+            if missions[m_id]["State"]=="Completed" and (datetime.datetime.now()-missions[m_id]["Date"]).total_seconds()>5:
+                missions.pop(m_id, None)
+
         response_data = []
+        
         for m in missions.keys():
             print(missions[m])
 
@@ -98,12 +138,11 @@ def handle_request(path=""):
             missions[m]['CurrentStepIndex']=0
             
             for s in missions[m]['Steps']:
-                s['StepStatus']="inserido"
                 s['CurrentTargetId'] = s['AllowedTargets'][0]["Id"]
             
             response_data.append(missions[m])
 
-    #print(response_data)
+        
     
     return jsonify(response_data)
 

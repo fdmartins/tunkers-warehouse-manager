@@ -182,6 +182,7 @@ class StatusControl:
         for l_m in local_missions:        
             existsOnNavithor = False
             
+            navithor_main_state = "?"
             # passamos pelas missoes cadastradas no navithor...
             for nt_m in navithor_missions:
     
@@ -249,18 +250,16 @@ class StatusControl:
 
                             # atualizamos o status no banco.
                             l_m.status = nt_s["StepStatus"]
-                            if navithor_main_state=="Completed":
-                                l_m.info = ""
-                            else:
-                                l_m.info = navithor_main_state
-
                             l_m.agv = agv
                             l_m.dt_updated = datetime.now()
+
+                            if navithor_main_state=="WaitingExtension":
+                                l_m.info = "Navithor aguardando comando para entrar no buffer (WaitingExtension)"
 
                             # verifica se finalizou em posicao de buffer.
                             # nao nos preocupamos em setar no navithor, pois quando agv descarrega ele ja seta como ocupado.
                             target_pos = int(nt_s["CurrentTargetId"])
-                            if nt_s["StepStatus"]=="Complete" and (navithor_main_state=="Executing" or navithor_main_state=="Completed"):
+                            if nt_s["StepStatus"]=="Complete":
 
                                 if self.buffers.is_position_buffer(l_m.position_target):
 
@@ -283,7 +282,9 @@ class StatusControl:
                 #<fim loop steps navithor> 
 
             #<fim loop missoes navithor> 
-            if not existsOnNavithor or l_m.status=="Complete":
+
+            #if not existsOnNavithor or l_m.status=="Complete":
+            if not existsOnNavithor or navithor_main_state=="Completed":
                 
                 # seta como concluido.
                 if not existsOnNavithor:
@@ -291,10 +292,20 @@ class StatusControl:
                 else:
                     self.logger.info(f"id({l_m.id_local}) Missão id {l_m.id_server} foi completada!")
 
-                
+
                 if l_m.status!="Complete":
-                    self.logger.error(f"id({l_m.id_local}) Missão foi finalizada mas não identificamos se foi completado! Ultimo status conhecido: {l_m.status}")
-                    l_m.info = f"Missão sumiu do Navithor com ultimo status conhecido como {l_m.status}. Abortada? "
+                    l_m.info = f"Passo finalizado com status inesperado: <{l_m.status}>!"
+
+                
+                if navithor_main_state!="Completed":
+                    self.logger.error(f"id({l_m.id_local}) Missão concluida inesperadamente Ultimo status conhecido: <{navithor_main_state}>")
+
+                    if not existsOnNavithor:
+                        l_m.info = f"{l_m.info} Missão não encontrada no Navithor - Ultimo status conhecido: <{navithor_main_state}>"
+                    else:
+                        l_m.info = f"{l_m.info} Missão concluida inesperadamente - Ultimo status conhecido: <{navithor_main_state}>"
+
+                
 
                 l_m.status = "FINALIZADO"
 
@@ -305,16 +316,7 @@ class StatusControl:
                 if button_call:
                     # Atualize o status da missão para "Concluido"
                     button_call.mission_status = "FINALIZADO"
-                    info_mission = ""
-                    info_call = ""
-
-                    if l_m.info!=None:
-                        info_mission = l_m.info
-                    if button_call.info!=None:
-                        info_call = button_call.info
-
-
-                    button_call.info = ' | '.join([info_mission, info_call])
+                    button_call.info =  l_m.info
                     
                 self.logger.info(f"Status chamado: {button_call}")
 
