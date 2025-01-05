@@ -253,7 +253,7 @@ class StatusControl:
                             l_m.agv = agv
                             l_m.dt_updated = datetime.now()
 
-                            if navithor_main_state=="WaitingExtension":
+                            if navithor_main_state=="WaitingExtension" and l_m.status!="Complete":
                                 l_m.info = "Navithor aguardando comando para entrar no buffer (WaitingExtension)"
 
                             # verifica se finalizou em posicao de buffer.

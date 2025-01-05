@@ -20,7 +20,7 @@ class NDB:
         }
 
 
-    def entrega_palete(self, btn_call):
+    def entrega_palete(self, btn_call, actual_steps):
         
         steps = STEPS()
 

@@ -34,6 +34,7 @@ class StepsMachineGenerator:
         self.machine_NDB = NDB(self.db, self.buffers)
 
 
+
     def get_steps(self, btn_call, pre_check=False, extension=False):
         steps = None
 
@@ -73,15 +74,15 @@ class StepsMachineGenerator:
 
             elif btn_call.action_type=="RETIRA" and btn_call.situation == "NAO_CONFORME":
                 # carretel cheio nao conforme e retira carretel vazio
-                steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_nao_conforme(btn_call)   
+                steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_nao_conforme(btn_call, actual_steps)   
 
             elif btn_call.action_type=="RETIRA_SAIDA":
                 # carretel cheio nao conforme e retira carretel vazio
-                steps = self.machine_retrofi.retira_carretel_cheio(btn_call)   
+                steps = self.machine_retrofi.retira_carretel_cheio(btn_call, actual_steps)   
 
             elif btn_call.action_type=="ABASTECE_ENTRADA":
                 # carretel cheio na entrada e retira carretel vazio
-                steps = self.machine_retrofi.abastece_carretel_vazio(btn_call)      
+                steps = self.machine_retrofi.abastece_carretel_vazio(btn_call, actual_steps)      
             else:
                 self.logger.error(f"Acao da botoeira invalida {btn_call.action_type} | {btn_call.situation}")
                 btn_call.info = f"Acao invalida {btn_call.action_type} | {btn_call.situation}"
@@ -93,31 +94,31 @@ class StepsMachineGenerator:
             # maquinas SAMPS
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_samps.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+                steps = self.machine_samps.abastece_carretel_cheio_retira_carretel_vazio(btn_call, actual_steps)
 
             if btn_call.action_type=="ABASTECE" and btn_call.situation=="NAO_CONFORME":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_samps.abastece_carretel_cheio_nao_conforme_retira_carretel_vazio(btn_call)
+                steps = self.machine_samps.abastece_carretel_cheio_nao_conforme_retira_carretel_vazio(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="NAO_CONFORME":
                 # retira carretel na entrada da maquina
-                steps = self.machine_samps.retira_carretel_nao_conforme(btn_call)
+                steps = self.machine_samps.retira_carretel_nao_conforme(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="ERRADO":
                 # retira carretel na entrada da maquina
-                steps = self.machine_samps.retira_carretel_errado(btn_call)
+                steps = self.machine_samps.retira_carretel_errado(btn_call, actual_steps)
 
             elif btn_call.action_type=="ABASTECE_ENTRADA":
                 # leva carretel na entrada da maquina, mas nao retira vazio.
-                steps = self.machine_samps.so_abastece_carretel(btn_call)
+                steps = self.machine_samps.so_abastece_carretel(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="COMPLETO":
                 # retira palete completo na saida.
-                steps = self.machine_samps.retira_palete(btn_call)
+                steps = self.machine_samps.retira_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="INCOMPLETO":
                 # retira palete incompleto na saida.
-                steps = self.machine_samps.retira_palete_incompleto(btn_call)
+                steps = self.machine_samps.retira_palete_incompleto(btn_call, actual_steps)
 
             #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
                 # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
@@ -135,11 +136,11 @@ class StepsMachineGenerator:
         elif btn_call.id_machine in [6066,6067]:
             if btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
                 # retira palete completo na saida.
-                steps = self.machine_reenrolador.retira_palete(btn_call)
+                steps = self.machine_reenrolador.retira_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
                 # retira palete incompleto na saida.
-                steps = self.machine_reenrolador.retira_palete_incompleto(btn_call)
+                steps = self.machine_reenrolador.retira_palete_incompleto(btn_call, actual_steps)
             else:
                 self.logger.error(f"Acao da botoeira invalida {btn_call.action_type} | {btn_call.situation}")
                 btn_call.info = f"Acao invalida {btn_call.action_type} | {btn_call.situation}"
@@ -150,11 +151,11 @@ class StepsMachineGenerator:
         elif btn_call.id_machine in [2015]:
             if btn_call.action_type=="RETIRA" and btn_call.situation=="COMPLETO":
                 # retira palete completo na saida.
-                steps = self.machine_spider.retira_palete(btn_call)
+                steps = self.machine_spider.retira_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA" and btn_call.situation=="INCOMPLETO":
                 # retira palete incompleto na saida.
-                steps = self.machine_spider.retira_palete_incompleto(btn_call)
+                steps = self.machine_spider.retira_palete_incompleto(btn_call, actual_steps)
             else:
                 self.logger.error(f"Acao da botoeira invalida {btn_call.action_type} | {btn_call.situation}")
                 btn_call.info = f"Acao invalida {btn_call.action_type} | {btn_call.situation}"
@@ -165,27 +166,27 @@ class StepsMachineGenerator:
         elif btn_call.id_machine in [6169,6023,6168]:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_barrica.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+                steps = self.machine_barrica.abastece_carretel_cheio_retira_carretel_vazio(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="NAO_CONFORME":
                 # retira carretel na entrada da maquina
-                steps = self.machine_barrica.retira_carretel_nao_conforme(btn_call)
+                steps = self.machine_barrica.retira_carretel_nao_conforme(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="ERRADO":
                 # retira carretel na entrada da maquina
-                steps = self.machine_barrica.retira_carretel_errado(btn_call)
+                steps = self.machine_barrica.retira_carretel_errado(btn_call, actual_steps)
 
             elif btn_call.action_type=="ABASTECE_ENTRADA":
                 # leva carretel na entrada da maquina, mas nao retira vazio.
-                steps = self.machine_barrica.so_abastece_carretel(btn_call)
+                steps = self.machine_barrica.so_abastece_carretel(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="COMPLETO":
                 # retira palete completo na saida.
-                steps = self.machine_barrica.retira_palete(btn_call)
+                steps = self.machine_barrica.retira_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="INCOMPLETO":
                 # retira palete incompleto na saida.
-                steps = self.machine_barrica.retira_palete_incompleto(btn_call)
+                steps = self.machine_barrica.retira_palete_incompleto(btn_call, actual_steps)
 
             #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
                 # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
@@ -202,27 +203,27 @@ class StepsMachineGenerator:
         elif btn_call.id_machine in [6150,6171,6170,6164,6162,6161,6159,6158,6157]:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_capacapa.abastece_carretel_cheio_retira_carretel_vazio(btn_call)
+                steps = self.machine_capacapa.abastece_carretel_cheio_retira_carretel_vazio(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="NAO_CONFORME":
                 # retira carretel na entrada da maquina
-                steps = self.machine_capacapa.retira_carretel_nao_conforme(btn_call)
+                steps = self.machine_capacapa.retira_carretel_nao_conforme(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_CARRETEL" and btn_call.situation=="ERRADO":
                 # retira carretel na entrada da maquina
-                steps = self.machine_capacapa.retira_carretel_errado(btn_call)
+                steps = self.machine_capacapa.retira_carretel_errado(btn_call, actual_steps)
 
             elif btn_call.action_type=="ABASTECE_ENTRADA":
                 # leva carretel na entrada da maquina, mas nao retira vazio.
-                steps = self.machine_capacapa.so_abastece_carretel(btn_call)
+                steps = self.machine_capacapa.so_abastece_carretel(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="COMPLETO":
                 # retira palete completo na saida.
-                steps = self.machine_capacapa.retira_palete(btn_call)
+                steps = self.machine_capacapa.retira_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="INCOMPLETO":
                 # retira palete incompleto na saida.
-                steps = self.machine_capacapa.retira_palete_incompleto(btn_call)
+                steps = self.machine_capacapa.retira_palete_incompleto(btn_call, actual_steps)
 
             #elif btn_call.action_type=="ABASTECE_SAIDA" and btn_call.situation=="INCOMPLETO":
                 # ATENCAO: OS INCOMPLETOS FICARAO MISTURADOS NA MESMA RUA, ENTAO EH IMPOSSIVEL ABATECER COM INCOMPLETOS
@@ -240,11 +241,11 @@ class StepsMachineGenerator:
         elif btn_call.id_machine in [2017]:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_embalagem_mimi.entrega_palete(btn_call)
+                steps = self.machine_embalagem_mimi.entrega_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_embalagem_mimi.retira_palete(btn_call)
+                steps = self.machine_embalagem_mimi.retira_palete(btn_call, actual_steps)
 
             else:
                 self.logger.error(f"Acao da botoeira invalida {btn_call.action_type} | {btn_call.situation}")
@@ -258,23 +259,23 @@ class StepsMachineGenerator:
         elif btn_call.id_machine in [1787]:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_embalagem_k.entrega_palete(btn_call)
+                steps = self.machine_embalagem_k.entrega_palete(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_embalagem_k.retira_palete(btn_call)
+                steps = self.machine_embalagem_k.retira_palete(btn_call, actual_steps)
 
             else:
                 self.logger.error(f"Acao da botoeira invalida {btn_call.action_type} | {btn_call.situation}")
                 btn_call.info = f"Acao invalida {btn_call.action_type} | {btn_call.situation}"
                 btn_call.mission_status = "FINALIZADO_ERRO"
 
-        #### AREA K - EMBALAGEM K #####
+        #### AREA NDB #####
 
         elif btn_call.id_machine in [2010, 2020, 2030, 2040, 2050]:
             if btn_call.action_type=="ABASTECE":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
-                steps = self.machine_NDB.entrega_palete(btn_call)
+                steps = self.machine_NDB.entrega_palete(btn_call, actual_steps)
 
         #### NAO EXISTE #####
 
