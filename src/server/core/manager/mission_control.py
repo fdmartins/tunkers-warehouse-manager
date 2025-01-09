@@ -65,7 +65,8 @@ class MissionControl:
                 step_id = start_step_index + id_step,
                 step_type = s["StepType"] ,
                 
-                position_target = s["AllowedTargets"][0]["Id"]
+                position_target = s["AllowedTargets"][0]["Id"],
+                is_extended = s["Options"]["WaitForExtension"]
             )
             self.db.session.add(m)
 
@@ -144,7 +145,9 @@ class MissionControl:
 
         # AQUI ENVIAMOS A MISSAO PRINCIPAL, PODENDO SER A MISSAO COMPLETA OU UMA MISSAO QUE SERA EXTENDIDA.
         for btn_call in button_calls:
-            self.logger.info(f"CHAMADO BOTOEIRA PENDENTE: {btn_call}" )
+            
+            if btn_call.mission_status=="PENDENTE":
+                self.logger.info(f"CHAMADO BOTOEIRA PENDENTE: {btn_call}" )
 
             is_extension = False
 
@@ -170,8 +173,11 @@ class MissionControl:
                 
                 if is_extension==False:
                     # nao há statis de waiting extension...
-                    self.logger.info("Nenhum status de WaitingExtension...")
+                    # self.logger.info("Nenhum status de WaitingExtension...")
                     continue
+                else:
+                    self.logger.info(f"CHAMADO BOTOEIRA PENDENTE DE EXTENSAO: {btn_call}" )
+                    self.logger.info("Missão aguardando WaitingExtension! Complementando passos...")
         
             if btn_call.mission_status=="ABORTAR":
                 # abortamos no navithor...

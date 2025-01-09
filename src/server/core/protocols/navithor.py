@@ -132,7 +132,7 @@ class Navithor:
 
         response = self.checkVersion()    
 
-        self.logger.info(f"Versão Navithor: {response} ")
+        #self.logger.info(f"Versão Navithor: {response} ")
 
 
     def send_mission(self, id_local, steps):

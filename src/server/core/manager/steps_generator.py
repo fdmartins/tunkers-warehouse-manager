@@ -62,7 +62,7 @@ class StepsMachineGenerator:
         for l_m in local_missions:   
             actual_steps+=1
 
-        self.logger.info(f"Quantidade atual de passos da missao id({btn_call.id}) : {actual_steps}")
+        self.logger.info(f"pre_check({pre_check}). Quantidade atual de passos da missao id({btn_call.id}) : {actual_steps}")
 
         #### AREA A #####
 

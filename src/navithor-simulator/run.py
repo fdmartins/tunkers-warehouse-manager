@@ -125,9 +125,9 @@ def handle_request(path=""):
     if path == "api/GetMissions":
         
         
-        for m_id in missions:
-            if missions[m_id]["State"]=="Completed" and (datetime.datetime.now()-missions[m_id]["Date"]).total_seconds()>5:
-                missions.pop(m_id, None)
+        #for m_id in missions:
+        #    if missions[m_id]["State"]=="Completed" and (datetime.datetime.now()-missions[m_id]["Date"]).total_seconds()>5:
+        #        missions.pop(m_id, None)
 
         response_data = []
         

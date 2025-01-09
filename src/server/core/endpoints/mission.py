@@ -17,7 +17,7 @@ def register_mission_routes():
 
     @app.route('/v1/mission/status/pending', methods=['POST'])
     def pending_mission():
-        missions = Mission.query.filter(Mission.status!='FINALIZADO').order_by(asc(Mission.id)).all()
+        missions = Mission.query.filter(Mission.status!='FINALIZADO').order_by(asc(Mission.id_local)).all()
         output = [{
             #'id': m.id, 
             'ID Navithor': m.id_server, 
@@ -43,7 +43,7 @@ def register_mission_routes():
 
     @app.route('/v1/mission/status/finish', methods=['POST'])
     def finish_mission():
-        missions = Mission.query.filter_by(status='FINALIZADO').order_by(desc(Mission.id)).limit(10).all()
+        missions = Mission.query.filter_by(status='FINALIZADO').order_by(desc(Mission.id_local)).limit(15).all()
         output = [{
             #'id': m.id, 
             'ID Navithor': m.id_server, 

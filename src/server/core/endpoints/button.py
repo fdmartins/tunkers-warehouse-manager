@@ -51,7 +51,7 @@ def register_button_routes(buffer_service):
 
 
     @app.route('/v1/button/call/abort/<id>', methods=['POST'])
-    def abort_call():
+    def abort_call(id):
 
         call_ret = ButtonCall.query.filter_by(id=id).first()
         

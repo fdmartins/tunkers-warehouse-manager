@@ -85,7 +85,7 @@ class Buffer:
                 if m.id_server==navithor_id:     
 
                     if navithor_main_state!="WaitingExtension" : 
-
+                        self.logger.info(f"Passos em andamento missao id {navithor_id} para posicao {m.position_target} status passo {m.status}")
                         area_id, row_id = self.find_area_and_row_of_position(m.position_target)
                         actual_moving.setdefault((area_id, row_id), 0)
                         actual_moving[area_id, row_id]+=1
@@ -148,6 +148,7 @@ class Buffer:
         return None
 
     def get_occupied_pos_of_sku(self, sku, buffers_allowed):
+
         # retorna a primeira posicao acessivel pela rua.
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
         actual_moving_row = self.get_actual_missions_moving()
@@ -158,12 +159,44 @@ class Buffer:
             self.logger.debug(f"Não encontrado nenhuma rua com SKU {sku}")
             return None, None
         
+        
+        # fazemos uma pré varredura, para saber quais ruas tem agv se movimentando. Selecionamos aquela livre.
+        # isso só é util quando mais de uma rua com mesmo sku e mesmo buffer, caso do CARRETEL VAZIO.
+        best_row = None
         for ret in all_ret:
             if ret.area_id in buffers_allowed:
+                current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
+                row = self.get_row_positions(ret.area_id, ret.row_id)
+                occupied_positions = sum(1 for item in row if item['occupied'])
+            
+                if current_movements >= occupied_positions:
+                    # nunca deve ser MAIOR, mas consideramos >=.
+                    # ja tem agvs se movimentando para esta rua e que comprometerá as posicoes.
+                    continue
+
+                if current_movements==0:
+                    best_row = ret.row_id
+                    break
+
+        self.logger.info(f"Melhor rua sem movimento {best_row}")
+
+        # selecionamos de fato qual rua retornaremos...
+        for ret in all_ret:
+            if ret.area_id in buffers_allowed:
+                
+                if best_row!=None:
+                    # existe uma possibilidade.
+                    if best_row!=ret.row_id:
+                        # nao é essa, continuamos...
+                        continue
+                
+                
                 row = self.get_row_positions(ret.area_id, ret.row_id)
 
                 # Verifica se a quantidade de movimentos na rua atual é maior ou igual às posições ocupadas
                 current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
+
+                # se ja existe agv em movimento nesta rua, tentamos uma proxima.
 
                 occupied_positions = sum(1 for item in row if item['occupied'])
             
