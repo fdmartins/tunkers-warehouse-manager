@@ -26,6 +26,10 @@ class REENROLADOR:
         # descarrega pallete cheio no buffer. 
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
 
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
+
         if actual_steps==0:
             if tag_final_unload==None:
                 self.logger.error(f"Não temos posicao livre disponivel no buffer!")
@@ -54,6 +58,11 @@ class REENROLADOR:
 
         # descarreta pallete cheio no buffer.
         tag_final_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+
+        btn_call.set_reserved_pos([
+
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
 
         if actual_steps==0:
             if tag_final_unload==None:

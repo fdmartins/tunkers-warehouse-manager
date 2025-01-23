@@ -30,6 +30,11 @@ class SAMPS:
         # descarrega carretel vazio no buffer. (id 1)
         tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
 
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
+
         if actual_steps==0:
             if tag_load==None:
                 self.logger.error(f"Não existe carretel com sku {btn_call.sku} no buffer 2! ")
@@ -76,11 +81,16 @@ class SAMPS:
 
         steps = STEPS()
 
-        # buscamos carretel cheio no buffer de cheios (id 2)
+        # buscamos carretel cheio no buffer de cheios
         tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL N/C", buffers_allowed=[3, ])
 
         # descarrega carretel vazio no buffer. (id 1)
         tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
 
         if actual_steps==0:
             if tag_load==None:
@@ -123,6 +133,38 @@ class SAMPS:
 
         return steps.getSteps()
     
+    def so_abastece_carretel_nao_conforme(self, btn_call, actual_steps):
+        # novo - proposta 20241205
+        steps = STEPS()
+
+        # buscamos carretel cheio no buffer de cheios NC
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL N/C", buffers_allowed=[3, ])
+
+        # descarrega carretel cheio na maquina.
+        tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            ]) 
+
+        if actual_steps==0:   
+            if tag_load==None:
+                self.logger.error(f"Não existe carretel com sku CARRETEL N/C no buffer 3! ")
+                btn_call.info = f"Sem carretel CARRETEL N/C no buffer! "
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                return None
+                    
+            # posicionamos AGV na entrada do buffer
+            tag_load = self.buffers.get_wait_pos_of(tag_load)
+            steps.insert(StepType.Drive, tag_load, wait_for_extension=True)
+            return steps.getSteps()
+    
+        steps.insert(StepType.Pickup, tag_load)
+
+        steps.insert(StepType.Dropoff, tag_unload)
+
+        return steps.getSteps()
+    
 
     def retira_carretel_nao_conforme(self, btn_call, actual_steps):
         steps = STEPS()
@@ -132,6 +174,10 @@ class SAMPS:
 
         # descarga no carretel nao conforme.
         tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
 
 
         if actual_steps==0:        
@@ -162,6 +208,9 @@ class SAMPS:
         # descarregamos o carretel no buffer com o sku corrigido.
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
 
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
         
         if actual_steps==0:        
             if tag_final_unload==None:
@@ -189,6 +238,10 @@ class SAMPS:
 
         # descarrega carretel cheio na maquina.
         tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            ]) 
 
         if actual_steps==0:   
             if tag_load==None:
@@ -218,6 +271,10 @@ class SAMPS:
         # descarreta pallete cheio no buffer.
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
 
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
+
         if actual_steps==0:   
         
             if tag_final_unload==None:
@@ -242,11 +299,15 @@ class SAMPS:
     def retira_palete_incompleto(self, btn_call, actual_steps):
         steps = STEPS()
 
-        # carreta palete cheio na maquina
+        # carrega palete cheio na maquina
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA_CHEIO"]
 
         # descarreta pallete cheio no buffer.
         tag_final_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
 
         if actual_steps==0:
             if tag_final_unload==None:
@@ -256,6 +317,11 @@ class SAMPS:
                 return None
             
             steps.insert(StepType.Pickup, tag_load)
+
+            # posicionamos AGV na entrada do buffer
+            tag_unload = self.buffers.get_wait_pos_of(tag_final_unload)
+            steps.insert(StepType.Drive, tag_unload, wait_for_extension=True)
+            return steps.getSteps()
             
         steps.insert(StepType.Dropoff, tag_final_unload)
 

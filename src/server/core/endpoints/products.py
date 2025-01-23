@@ -64,6 +64,11 @@ def register_products_routes():
     def products_new_complete():
         data = request.get_json()
 
+        p = ProdutosCompleto.query.filter_by(sku=data['sku']).first()
+
+        if p!=None:
+            return jsonify({'status':False, 'message': 'SKU DUPLICADO'}), 409
+
         new_p = ProdutosCompleto(sku=data['sku'], nome=data['nome'], tipo=data['tipo'] )
         db.session.add(new_p)
         db.session.commit()
@@ -76,6 +81,11 @@ def register_products_routes():
     @app.route('/v1/products/new/summarized', methods=['POST'])
     def products_new_summarized():
         data = request.get_json()
+
+        p = ProdutosResumido.query.filter_by(sku=data['sku']).first()
+
+        if p!=None:
+            return jsonify({'status':False, 'message': 'SKU DUPLICADO'}), 409
 
         new_p = ProdutosResumido(bitola=data['bitola'],  nome=data['nome'],  sku=data['sku'], tipo=data['tipo'] )
         db.session.add(new_p)

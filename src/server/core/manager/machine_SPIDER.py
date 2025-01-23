@@ -29,6 +29,10 @@ class SPIDER:
 
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=buffers_allowed)
 
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_final_unload)
+            ]) 
+
         if actual_steps==0:
             if tag_final_unload==None:
                 self.logger.error(f"Não temos posicao livre disponivel no buffer!")

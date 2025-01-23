@@ -3,8 +3,6 @@ from datetime import datetime
 
 class Button:
     def __init__(self):
-        # CARREGA ARQUIVO .INI COM WHITELIST E OUTRAS INFORMACOES CUSTOMIZAVEIS...
-        # TODO.
         pass
 
     ip = "?"
@@ -34,6 +32,8 @@ class ButtonCall(db.Model):
     gauge = db.Column(db.String(10))                # Bitola 
     product = db.Column(db.String(50))          # product name
 
+    reserved_pos = db.Column(db.String(150), default="")  # armazena posicoes que deveram ser reservadas para este movimento.
+
     mission_status = db.Column(db.String(50), nullable=False) 
     info = db.Column(db.String(500)) 
 
@@ -41,6 +41,16 @@ class ButtonCall(db.Model):
 
     dt_creation = db.Column(db.DateTime, default=datetime.now())
 
+    def set_reserved_pos(self, lista):
+        # Converte a lista para uma string separada por vírgulas
+        self.reserved_pos = ','.join(map(str, lista))
+
+    def get_reserved_pos(self):
+        # Converte a string de volta para uma lista de inteiros
+        if self.reserved_pos:
+            return [int(item) for item in self.reserved_pos.split(',')]
+        return []
+    
 
     def __str__(self):
         # Formata todos os atributos da instância como uma string
@@ -58,6 +68,7 @@ class ButtonCall(db.Model):
                 f"sku={self.sku}, "
                 f"mission_status={self.mission_status}, "
                 f"info={self.info}, "
+                f"reserved_pos={self.reserved_pos}, "
                 f"id_navithor={self.id_navithor}, "
                 f"dt_creation={self.dt_creation})"
                 )

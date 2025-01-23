@@ -40,13 +40,13 @@ class MissionControl:
             with app.app_context():
                 try:
                     self.run()
-                    #self.comm.send_mission(id_local=0, steps=[])
                     time.sleep(2)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
                     self.logger.error(traceback.format_exc())
                     History.error("SISTEMA", f"{e}")
                     time.sleep(20)
+
 
                 
     def saveSteps(self, id_local, id_server, steps):
@@ -146,96 +146,104 @@ class MissionControl:
         # AQUI ENVIAMOS A MISSAO PRINCIPAL, PODENDO SER A MISSAO COMPLETA OU UMA MISSAO QUE SERA EXTENDIDA.
         for btn_call in button_calls:
             
-            if btn_call.mission_status=="PENDENTE":
-                self.logger.info(f"CHAMADO BOTOEIRA PENDENTE: {btn_call}" )
+            try:
+                if btn_call.mission_status=="PENDENTE":
+                    self.logger.info(f"CHAMADO BOTOEIRA PENDENTE: {btn_call}" )
 
-            is_extension = False
+                is_extension = False
 
-            if btn_call.mission_status=="EXECUTANDO":
-                # Verificamos se a missão esta como WaitingExtension...
-                for nt_m in navithor_missions:
-    
-                    navithor_id = nt_m["Id"]
-                    navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
-
-                    local_id = -1
-                    try:
-                        # missoes criadas diretamente no navithor tem id como string.
-                        local_id = int(nt_m["ExternalId"])
-                    except:
-                        pass
-
-                    if btn_call.id == local_id:
-                        # missao da respectiva chamada da botoeira.
-                        if  navithor_main_state=="WaitingExtension":
-                            is_extension = True
-                            break
-                
-                if is_extension==False:
-                    # nao há statis de waiting extension...
-                    # self.logger.info("Nenhum status de WaitingExtension...")
-                    continue
-                else:
-                    self.logger.info(f"CHAMADO BOTOEIRA PENDENTE DE EXTENSAO: {btn_call}" )
-                    self.logger.info("Missão aguardando WaitingExtension! Complementando passos...")
+                if btn_call.mission_status=="EXECUTANDO":
+                    # Verificamos se a missão esta como WaitingExtension...
+                    for nt_m in navithor_missions:
         
-            if btn_call.mission_status=="ABORTAR":
-                # abortamos no navithor...
-                # concluimos o chamado.
-                id_server = self.comm.abort_mission(id_local=btn_call.id)
-                btn_call.mission_status = "FINALIZADO_ERRO"
-                btn_call.info = "Missão abortada pelo operador"
-                self.logger.warning(f"ABORTADA MISSAO id {btn_call.id}")
-                History.warning("SISTEMA", f"MISSAO {btn_call.id} ABORTADA PELO OPERADOR!")
-                continue
+                        navithor_id = nt_m["Id"]
+                        navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
 
+                        local_id = -1
+                        try:
+                            # missoes criadas diretamente no navithor tem id como string.
+                            local_id = int(nt_m["ExternalId"])
+                        except:
+                            pass
 
-            steps = self.steps_generator.get_steps(btn_call)
-
-            print("="*40)
-            print(steps)
-
-            # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
-            # varremos steps, verificamos se alguma posicao ja foi enviada ao navithor e ainda esta com status diferente de Completed.
-            if steps!=None:
-                allowed, message = self.isStepsAllowed(steps)
-                if allowed==False:
-                    btn_call.info = message 
-                    self.logger.warning("Já existe missão para mesma posição, aguardamos...")
-                    steps = None
-
-
-            if steps==None:
-                self.logger.info("Nenhuma missão a ser enviada.")
-                continue
-
-            # no caso de WaitingExtension, se o navithor não atualizar imediato o status da missão, pode ser que tentamos reenviar.
-            # aqui protegemos de reenvio.
-            if self.redundantSteps(steps):
-                self.logger.warning("Essas etapas já foram enviadas. Ignorando.")
-                continue
-
-            # enviamos ao navithor. 
-            if not is_extension:
-                self.logger.info(f"Enviando Missão ID {btn_call.id}... quantidade de passos {len(steps)}")
-                #self.logger.debug(json.dumps(steps, indent=4) )            
-                id_server = self.comm.send_mission(id_local=btn_call.id, steps=steps)
-            else:
-                self.logger.info(f"EXTENDENDO Missão ID {btn_call.id}... quantidade de passos {len(steps)}")
-                id_server = self.comm.extend_mission(id_local=btn_call.id, steps=steps)
-
-
-            #print(steps)
-            # se a missao foi enviada com sucesso. Então armazenamos os steps no banco para acompanhamento de status.
-            self.saveSteps(btn_call.id, id_server, steps)
-                
+                        if btn_call.id == local_id:
+                            # missao da respectiva chamada da botoeira.
+                            if  navithor_main_state=="WaitingExtension":
+                                is_extension = True
+                                break
+                    
+                    if is_extension==False:
+                        # nao há statis de waiting extension...
+                        # self.logger.info("Nenhum status de WaitingExtension...")
+                        continue
+                    else:
+                        self.logger.info(f"CHAMADO BOTOEIRA PENDENTE DE EXTENSAO: {btn_call}" )
+                        self.logger.info("Missão aguardando WaitingExtension! Complementando passos...")
             
-            self.logger.info(f"OK Missão ID Navithor: {id_server}")
+                if btn_call.mission_status=="ABORTAR":
+                    # abortamos no navithor...
+                    # concluimos o chamado.
+                    id_server = self.comm.abort_mission(id_local=btn_call.id)
+                    btn_call.mission_status = "FINALIZADO_ERRO"
+                    btn_call.info = "Missão abortada pelo operador"
+                    self.logger.warning(f"ABORTADA MISSAO id {btn_call.id}")
+                    History.warning("SISTEMA", f"MISSAO {btn_call.id} ABORTADA PELO OPERADOR!")
+                    continue
 
-            # armazenamos no chamado, o id do servidor - ele é usado para monitorar o status das missoes.
-            # cuidado, este id é constantamente zerado quando as missoes finalizam. melhor minitorar pelo id local (externalid)
-            btn_call.id_navithor = id_server
-            btn_call.mission_status = "EXECUTANDO"
+
+                steps = self.steps_generator.get_steps(btn_call)
+
+                print("="*40)
+                print(steps)
+
+                # se o destino eh buffer. Verificamos se ja existe algum STEP de missao para a mesma rua. Se sim, aguardamos a conclusão da missao anterior.
+                # varremos steps, verificamos se alguma posicao ja foi enviada ao navithor e ainda esta com status diferente de Completed.
+                if steps!=None:
+                    allowed, message = self.isStepsAllowed(steps)
+                    if allowed==False:
+                        btn_call.info = message 
+                        self.logger.warning("Já existe missão para mesma posição, aguardamos...")
+                        steps = None
+
+
+                if steps==None:
+                    self.logger.info("Nenhuma missão a ser enviada.")
+                    continue
+
+                # no caso de WaitingExtension, se o navithor não atualizar imediato o status da missão, pode ser que tentamos reenviar.
+                # aqui protegemos de reenvio.
+                if self.redundantSteps(steps):
+                    self.logger.warning("Essas etapas já foram enviadas. Ignorando.")
+                    continue
+
+                # enviamos ao navithor. 
+                if not is_extension:
+                    self.logger.info(f"Enviando Missão ID {btn_call.id}... quantidade de passos {len(steps)}")
+                    #self.logger.debug(json.dumps(steps, indent=4) )            
+                    id_server = self.comm.send_mission(id_local=btn_call.id, steps=steps)
+                else:
+                    self.logger.info(f"EXTENDENDO Missão ID {btn_call.id}... quantidade de passos {len(steps)}")
+                    id_server = self.comm.extend_mission(id_local=btn_call.id, steps=steps)
+
+
+                #print(steps)
+                # se a missao foi enviada com sucesso. Então armazenamos os steps no banco para acompanhamento de status.
+                self.saveSteps(btn_call.id, id_server, steps)
+                    
+                
+                self.logger.info(f"OK Missão ID Navithor: {id_server}")
+
+                # armazenamos no chamado, o id do servidor - ele é usado para monitorar o status das missoes.
+                # cuidado, este id é constantamente zerado quando as missoes finalizam. melhor minitorar pelo id local (externalid)
+                btn_call.id_navithor = id_server
+                btn_call.mission_status = "EXECUTANDO"
+
+            except Exception as e:
+                btn_call.mission_status = "FINALIZADO_ERRO"
+                btn_call.info = "FALHA - " + str(e)
+                self.logger.error(f"ERRO GERAL: {e}")
+                self.logger.error(traceback.format_exc())
+                History.error("SISTEMA", f"{e}")
 
 
         self.db.session.commit()

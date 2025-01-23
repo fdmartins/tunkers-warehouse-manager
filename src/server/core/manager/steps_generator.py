@@ -64,7 +64,7 @@ class StepsMachineGenerator:
 
         self.logger.info(f"pre_check({pre_check}). Quantidade atual de passos da missao id({btn_call.id}) : {actual_steps}")
 
-        #### AREA A #####
+        #### AREA A RETROFILA #####
 
         if btn_call.id_machine in [438,420,419,416,415,422,421,529,528,527,443,439,489, 670]:
             # maquina RETROFILA
@@ -76,9 +76,13 @@ class StepsMachineGenerator:
                 # carretel cheio nao conforme e retira carretel vazio
                 steps = self.machine_retrofi.abastece_carretel_vazio_retira_carretel_nao_conforme(btn_call, actual_steps)   
 
-            elif btn_call.action_type=="RETIRA_SAIDA":
+            elif btn_call.action_type=="RETIRA_SAIDA" and btn_call.situation != "NAO_CONFORME":
                 # carretel cheio nao conforme e retira carretel vazio
                 steps = self.machine_retrofi.retira_carretel_cheio(btn_call, actual_steps)   
+
+            elif btn_call.action_type=="RETIRA_SAIDA" and btn_call.situation == "NAO_CONFORME":
+                # carretel cheio nao conforme e retira carretel vazio
+                steps = self.machine_retrofi.retira_carretel_cheio_nao_conforme(btn_call, actual_steps)   
 
             elif btn_call.action_type=="ABASTECE_ENTRADA":
                 # carretel cheio na entrada e retira carretel vazio
@@ -88,15 +92,15 @@ class StepsMachineGenerator:
                 btn_call.info = f"Acao invalida {btn_call.action_type} | {btn_call.situation}"
                 btn_call.mission_status = "FINALIZADO_ERRO"
 
-        #### AREA B #####
+        #### AREA B SAMPS #####
 
         elif btn_call.id_machine in [6146,6155,6148,6151,6144]:
             # maquinas SAMPS
-            if btn_call.action_type=="ABASTECE":
+            if btn_call.action_type=="ABASTECE" and btn_call.situation!="NAO_CONFORME":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
                 steps = self.machine_samps.abastece_carretel_cheio_retira_carretel_vazio(btn_call, actual_steps)
 
-            if btn_call.action_type=="ABASTECE" and btn_call.situation=="NAO_CONFORME":
+            elif btn_call.action_type=="ABASTECE" and btn_call.situation=="NAO_CONFORME":
                 # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
                 steps = self.machine_samps.abastece_carretel_cheio_nao_conforme_retira_carretel_vazio(btn_call, actual_steps)
 
@@ -108,9 +112,13 @@ class StepsMachineGenerator:
                 # retira carretel na entrada da maquina
                 steps = self.machine_samps.retira_carretel_errado(btn_call, actual_steps)
 
-            elif btn_call.action_type=="ABASTECE_ENTRADA":
+            elif btn_call.action_type=="ABASTECE_ENTRADA" and btn_call.situation!="NAO_CONFORME":
                 # leva carretel na entrada da maquina, mas nao retira vazio.
                 steps = self.machine_samps.so_abastece_carretel(btn_call, actual_steps)
+
+            elif btn_call.action_type=="ABASTECE_ENTRADA" and btn_call.situation!="NAO_CONFORME":
+                # leva carretel na entrada da maquina, mas nao retira vazio.
+                steps = self.machine_samps.so_abastece_carretel_nao_conforme(btn_call, actual_steps)
 
             elif btn_call.action_type=="RETIRA_PALLET" and btn_call.situation=="COMPLETO":
                 # retira palete completo na saida.
@@ -272,10 +280,14 @@ class StepsMachineGenerator:
 
         #### AREA NDB #####
 
-        elif btn_call.id_machine in [2010, 2020, 2030, 2040, 2050]:
+        elif btn_call.id_machine in [3070,3071,3072,3073,3074,3075]:
             if btn_call.action_type=="ABASTECE":
-                # carretel cheio na entrada e retira carretel vazio (entrada da maquina)
+                # retira pallete da posicao unica e leva para maquina.
                 steps = self.machine_NDB.entrega_palete(btn_call, actual_steps)
+
+            if btn_call.action_type=="RETIRA":
+                # retira palete da maquina e leva para posicao unica. 
+                steps = self.machine_NDB.retira_palete(btn_call, actual_steps)
 
         #### NAO EXISTE #####
 

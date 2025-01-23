@@ -2,9 +2,12 @@ from core import db
 from datetime import datetime
 import configparser
 import logging
-import json 
+import json
+from sqlalchemy import or_, and_
+from ..models.buttons import ButtonCall 
 from ..utils import FileRef
 from ..models.mission import Mission
+
 
 class Buffer:
     """
@@ -69,27 +72,42 @@ class Buffer:
         # retorna os steps de missoes não finalizadas.
         # DrivingToWait AGV drives to step wait location.
         # AtWait AGV is at wait location.
-        local_missions = Mission.query.filter(Mission.status!='FINALIZADO').all()
+        button_calls = ButtonCall.query.filter(
+                                                or_(
+                                                    #ButtonCall.mission_status=='PENDENTE',
+                                                    ButtonCall.mission_status=='EXECUTANDO'
+                                                )
+                                            ).all()
 
-        for m in local_missions:
 
+        for b in button_calls:
+            positions = b.get_reserved_pos()
+
+    
             # passamos pelas missoes cadastradas no navithor...
+            ignore = False
             for nt_m in navithor_missions:
 
                 navithor_id = nt_m["Id"]
+                local_id = nt_m["ExternalId"]
                 navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
                 agv = nt_m["AssignedMachineId"]
                 current_step_index = nt_m["CurrentStepIndex"]
                 steps = nt_m["Steps"]
 
-                if m.id_server==navithor_id:     
+                if b.id==navithor_id:     
+                    if navithor_main_state=="WaitingExtension" : 
+                        ignore = True
 
-                    if navithor_main_state!="WaitingExtension" : 
-                        self.logger.info(f"Passos em andamento missao id {navithor_id} para posicao {m.position_target} status passo {m.status}")
-                        area_id, row_id = self.find_area_and_row_of_position(m.position_target)
-                        actual_moving.setdefault((area_id, row_id), 0)
-                        actual_moving[area_id, row_id]+=1
+            if ignore==False:
+                for p in positions:
+                    self.logger.info(f"Passos do chamado id {b.id} para posicao {p} mission_status {b.mission_status}")
+                    area_id, row_id = self.find_area_and_row_of_position(p)
+                    actual_moving.setdefault((area_id, row_id), 0)
+                    actual_moving[area_id, row_id]+=1
 
+
+        
         return actual_moving
     
     def get_wait_pos_by_area_and_row(self, area_id, row_id):
@@ -294,7 +312,7 @@ class Buffer:
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
         actual_moving_row = self.get_actual_missions_moving()
 
-        # TESTAR get_free_pos_POR_PRIORIDADE (aguarde proposta adicional.)
+        # TESTAR get_free_pos_POR_PRIORIDADE (aguardando cliente enviar ordem de prioridade de buffer.)
 
         free_pos_id = None
         free_area_id = None 
@@ -305,7 +323,11 @@ class Buffer:
             row = self.get_row_positions(ret.area_id, ret.row_id)
             current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
             empty_positions = sum(1 for item in row if not item['occupied'])
-            
+
+            self.logger.info(actual_moving_row)
+            self.logger.info(f"{empty_positions} posicoes livres para area {ret.area_id} rua {ret.row_id}")
+            self.logger.info(f"{current_movements} Movimentos correntes para area {ret.area_id} rua {ret.row_id}")
+
             if current_movements >= empty_positions:
                 continue
 
@@ -314,7 +336,7 @@ class Buffer:
 
             # verificamos se esta em um buffer id permitido.
             if free_pos_id_test!=None and free_area_id_test in buffers_allowed:
-                self.logger.debug(f"Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
+                self.logger.info(f"Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
                 free_pos_id = free_pos_id_test
                 free_area_id = free_area_id_test
                 break
@@ -323,13 +345,17 @@ class Buffer:
         #self.logger.debug(f"{len(ret_all)} {free_area_id}")
 
         if len(ret_all)==0 or free_area_id==None:
-            self.logger.debug("não existe ainda uma rua com este sku, pegamos uma rua livre e a dedicamos para o sku")
+            self.logger.info("não existe ainda uma rua com este sku, verificamos uma rua livre para dedicar este sku")
             for area_id, buffer in self.buffers.items():
                 for area_id in buffers_allowed:
                     for row in buffer['rows']:
                         ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row["id"]).one_or_none()
                         if ret==None:
                             row_positions = self.get_row_positions(area_id, row["id"])
+                            if row_positions==None:
+                                #
+                                continue
+
                             current_movements = actual_moving_row.get((area_id, row["id"]), 0)
                             empty_positions = sum(1 for item in row_positions if not item['occupied'])
                             
@@ -339,9 +365,10 @@ class Buffer:
                             free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
                             if free_pos_id!=None:
                                 # nesse buffer e nessa rua foi encontrado posicao livre.
-                                self.logger.debug(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
+                                self.logger.info(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
                                 return free_pos_id, free_area_id 
 
+        self.logger.error("Nao existe rua livre para dedicarmos um novo sku.!")
 
         return free_pos_id, free_area_id 
     

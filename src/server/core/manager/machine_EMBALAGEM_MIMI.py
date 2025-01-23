@@ -23,6 +23,10 @@ class EMBALAGEM_MIMI:
 
         # carrega palete cheio na maquina
         tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA"]
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            ]) 
         
         if actual_steps==0:
             if tag_load==None:
@@ -54,6 +58,11 @@ class EMBALAGEM_MIMI:
         buffers_allowed = [9, ]
 
         tag_unload, area_id_sku = self.buffers.get_free_pos("EXPEDICAO", buffers_allowed=buffers_allowed)
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            self.buffers.get_wait_pos_of(tag_unload)
+            ]) 
 
         if actual_steps==0:
             if tag_unload==None:

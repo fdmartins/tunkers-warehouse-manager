@@ -25,6 +25,10 @@ class EMBALAGEM_K:
         # carrega palete cheio na maquina
         tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA"]
 
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_load), 
+            ]) 
+
         if actual_steps==0:
             if tag_load==None:
                 self.logger.error(f"Não existe pallet com sku {btn_call.sku} no buffer! ")
@@ -51,6 +55,10 @@ class EMBALAGEM_K:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA"]
         # descarreta pallete cheio na expedicao..
         tag_unload, area_id_sku = self.buffers.get_free_pos("EXPEDICAO", buffers_allowed=[9, ])
+
+        btn_call.set_reserved_pos([
+            self.buffers.get_wait_pos_of(tag_unload)
+            ]) 
 
         if actual_steps==0:
             if tag_unload==None:
