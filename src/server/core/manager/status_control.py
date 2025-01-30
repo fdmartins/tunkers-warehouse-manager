@@ -46,7 +46,7 @@ class StatusControl:
                     
                     self.checkMissionStatus()
 
-                    time.sleep(2)
+                    time.sleep(1)
                 except Exception as e:
                     self.logger.error(f"ERRO GERAL: {e}")
                     self.logger.error(traceback.format_exc())
@@ -207,7 +207,7 @@ class StatusControl:
                 steps = nt_m["Steps"]
 
                 if l_m.mission_status!=navithor_main_state:
-                    self.logger.info(f"id({local_id}) Status Missão mudou de {l_m.mission_status} para {navithor_main_state}")
+                    self.logger.info(f"id({local_id})  Step {l_m.step_id} PosTarget {l_m.position_target}  - Status Missão mudou de {l_m.mission_status} para {navithor_main_state}")
 
                 l_m.mission_status = navithor_main_state
 
@@ -267,9 +267,11 @@ class StatusControl:
                             l_m.agv = agv
                             l_m.dt_updated = datetime.now()
 
-                            if navithor_main_state=="WaitingExtension" and l_m.status!="Complete":
-                                l_m.info = "Navithor aguardando comando para entrar no buffer (WaitingExtension)"
-
+                            if navithor_main_state=="WaitingExtension":
+                                if l_m.status!="Complete":
+                                    l_m.info = "Navithor aguardando comando para entrar no buffer (WaitingExtension), mas passo anterior ainda não deu Complete..."
+                            else:
+                                l_m.info = ""
                             
                             # verifica se finalizou em posicao de buffer.
                             # nao nos preocupamos em setar no navithor, pois quando agv descarrega ele ja seta como ocupado.

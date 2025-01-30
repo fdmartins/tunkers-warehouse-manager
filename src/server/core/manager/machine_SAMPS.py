@@ -25,10 +25,10 @@ class SAMPS:
         steps = STEPS()
 
         # buscamos carretel cheio no buffer de cheios (id 2)
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[2, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
         # descarrega carretel vazio no buffer. (id 1)
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL VAZIO", buffers_allowed=[1, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
@@ -82,10 +82,10 @@ class SAMPS:
         steps = STEPS()
 
         # buscamos carretel cheio no buffer de cheios
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL N/C", buffers_allowed=[3, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, "CARRETEL N/C", buffers_allowed=[3, ])
 
         # descarrega carretel vazio no buffer. (id 1)
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL VAZIO", buffers_allowed=[1, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
@@ -138,7 +138,7 @@ class SAMPS:
         steps = STEPS()
 
         # buscamos carretel cheio no buffer de cheios NC
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL N/C", buffers_allowed=[3, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, "CARRETEL N/C", buffers_allowed=[3, ])
 
         # descarrega carretel cheio na maquina.
         tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
@@ -173,7 +173,7 @@ class SAMPS:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
 
         # descarga no carretel nao conforme.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL N/C", buffers_allowed=[3, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_final_unload)
@@ -206,7 +206,7 @@ class SAMPS:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
 
         # descarregamos o carretel no buffer com o sku corrigido.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_final_unload)
@@ -234,7 +234,7 @@ class SAMPS:
         steps = STEPS()
 
         # buscamos carretel cheio no buffer de cheios (id 2)
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[2, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
         # descarrega carretel cheio na maquina.
         tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA_CHEIO"]
@@ -269,7 +269,7 @@ class SAMPS:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA_CHEIO"]
 
         # descarreta pallete cheio no buffer.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[5, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_final_unload)
@@ -303,7 +303,7 @@ class SAMPS:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA_CHEIO"]
 
         # descarreta pallete cheio no buffer.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "PALETE INCOMPLETO", buffers_allowed=[4, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_final_unload)

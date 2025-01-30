@@ -40,6 +40,8 @@ class StepsMachineGenerator:
 
         #### VERIFICAMOS E JA EXISTE CHAMADO DESTE MAQUINA "E" COM MESMA ACAO (ABASTECE/RETIRA), SE SIM, RECUSAMOS #### 
         if pre_check:
+            self.logger.info(f"pre_check({pre_check}) - {btn_call}")
+
             button_running_calls = ButtonCall.query.filter(
                                                 and_(
                                                     ButtonCall.id_machine == btn_call.id_machine,

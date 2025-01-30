@@ -8,7 +8,7 @@ class STEPS:
 
     def insert(self, step_type:StepType, target_pos, wait_for_extension=False):
 
-        self.logger.info(f"Adicionado Step {step_type.value} pos {target_pos}")
+        self.logger.info(f"Adicionado Step {step_type.value} pos {target_pos} = wait_extension {wait_for_extension}")
 
         self.steps.append(  
             {

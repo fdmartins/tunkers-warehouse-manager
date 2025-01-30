@@ -19,7 +19,7 @@ class EMBALAGEM_MIMI:
         steps = STEPS()
 
         # buscamos pallet cheio no buffer
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call.sku, buffers_allowed=[5,7, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, btn_call.sku, buffers_allowed=[5,7, ])
 
         # carrega palete cheio na maquina
         tag_unload = self.machine_positions[btn_call.id_machine]["POS_ENTRADA"]
@@ -57,7 +57,7 @@ class EMBALAGEM_MIMI:
         # descarreta pallete cheio na expedicao..
         buffers_allowed = [9, ]
 
-        tag_unload, area_id_sku = self.buffers.get_free_pos("EXPEDICAO", buffers_allowed=buffers_allowed)
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "EXPEDICAO", buffers_allowed=buffers_allowed)
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 

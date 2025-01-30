@@ -34,10 +34,10 @@ class RETROFI:
         steps = STEPS()
 
         # carrega carretel vazio no buffer.
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, "CARRETEL VAZIO", buffers_allowed=[1, ])
 
         # descarrega carretel CHEIO no buffer. (id 2)
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
 
         btn_call.set_reserved_pos([
@@ -93,7 +93,7 @@ class RETROFI:
         steps = STEPS()
 
         # descarrega carretel CHEIO no buffer. (id 2)
-        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[2, ])
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_unload)
@@ -128,7 +128,7 @@ class RETROFI:
         steps = STEPS()
 
         # descarrega carretel CHEIO no buffer. (id 2)
-        tag_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[2, ])
+        tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL N/C", buffers_allowed=[2, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_unload), 
@@ -164,10 +164,10 @@ class RETROFI:
         steps = STEPS()
 
         # carrega carretel vazio no buffer.
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, "CARRETEL VAZIO", buffers_allowed=[1, ])
 
         # descarrega carretel NAO CONFORME no buffer. (id 3)
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("CARRETEL N/C", buffers_allowed=[3, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL N/C", buffers_allowed=[3, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
@@ -224,7 +224,7 @@ class RETROFI:
         steps = STEPS()
 
         # carrega carretel vazio no buffer.
-        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku("CARRETEL VAZIO", buffers_allowed=[1, ])
+        tag_load, area_id_sku = self.buffers.get_occupied_pos_of_sku(btn_call, "CARRETEL VAZIO", buffers_allowed=[1, ])
 
 
         btn_call.set_reserved_pos([

@@ -63,7 +63,10 @@ class Buffer:
         #self.logger.info(json.dumps(self.buffers, indent=4) )
 
 
-    def get_actual_missions_moving(self):
+    def get_actual_missions_moving(self, requesting_btn_id):
+
+        self.logger.info(f"id({requesting_btn_id}) get_actual_missions_moving()")
+        
 
         navithor_missions = self.navithor_comm.get_mission_status() 
 
@@ -83,6 +86,9 @@ class Buffer:
         for b in button_calls:
             positions = b.get_reserved_pos()
 
+            if b.id == requesting_btn_id:
+                continue
+
     
             # passamos pelas missoes cadastradas no navithor...
             ignore = False
@@ -95,14 +101,19 @@ class Buffer:
                 current_step_index = nt_m["CurrentStepIndex"]
                 steps = nt_m["Steps"]
 
-                if b.id==navithor_id:     
-                    if navithor_main_state=="WaitingExtension" : 
-                        ignore = True
+
+
+                #if b.id==local_id:     
+                #    if navithor_main_state=="WaitingExtension" : 
+               #         ignore = True
 
             if ignore==False:
                 for p in positions:
-                    self.logger.info(f"Passos do chamado id {b.id} para posicao {p} mission_status {b.mission_status}")
+                
                     area_id, row_id = self.find_area_and_row_of_position(p)
+
+                    self.logger.info(f"Tem Missao para posicao {p} (area {area_id} rua {row_id}) - chamado id {b.id} - navithor_main_state {navithor_main_state}")
+
                     actual_moving.setdefault((area_id, row_id), 0)
                     actual_moving[area_id, row_id]+=1
 
@@ -165,16 +176,21 @@ class Buffer:
             
         return None
 
-    def get_occupied_pos_of_sku(self, sku, buffers_allowed):
+    def get_occupied_pos_of_sku(self, btn, sku, buffers_allowed):
+        requesting_btn_id = btn.id
 
+
+        self.logger.info(f"id({requesting_btn_id}) get_occupied_pos_of_sku()")
+
+        
         # retorna a primeira posicao acessivel pela rua.
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
-        actual_moving_row = self.get_actual_missions_moving()
+        actual_moving_row = self.get_actual_missions_moving(requesting_btn_id)
 
         all_ret = BufferSKURow.query.filter_by(sku=sku).all()
 
         if len(all_ret)==0:
-            self.logger.debug(f"Não encontrado nenhuma rua com SKU {sku}")
+            self.logger.debug(f"id({requesting_btn_id}) Não encontrado nenhuma rua com SKU {sku}")
             return None, None
         
         
@@ -196,7 +212,7 @@ class Buffer:
                     best_row = ret.row_id
                     break
 
-        self.logger.info(f"Melhor rua sem movimento {best_row}")
+        self.logger.info(f"id({requesting_btn_id}) Melhor rua sem movimento {best_row}")
 
         # selecionamos de fato qual rua retornaremos...
         for ret in all_ret:
@@ -305,12 +321,19 @@ class Buffer:
         # Se não encontrou nenhuma posição em nenhum buffer permitido
         return None, None
 
-    def get_free_pos(self, sku, buffers_allowed):
+    def get_free_pos(self, btn, sku, buffers_allowed):
         """
         retorna a primeira posicao vazia da rua do buffer. 
         """
+
+        requesting_btn_id = btn.id
+
+        self.logger.info(f"id({requesting_btn_id}) get_free_pos()")
+
+        
+
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
-        actual_moving_row = self.get_actual_missions_moving()
+        actual_moving_row = self.get_actual_missions_moving(requesting_btn_id)
 
         # TESTAR get_free_pos_POR_PRIORIDADE (aguardando cliente enviar ordem de prioridade de buffer.)
 
@@ -325,8 +348,8 @@ class Buffer:
             empty_positions = sum(1 for item in row if not item['occupied'])
 
             self.logger.info(actual_moving_row)
-            self.logger.info(f"{empty_positions} posicoes livres para area {ret.area_id} rua {ret.row_id}")
-            self.logger.info(f"{current_movements} Movimentos correntes para area {ret.area_id} rua {ret.row_id}")
+            self.logger.info(f"id({requesting_btn_id}) {empty_positions} posicoes livres para area {ret.area_id} rua {ret.row_id}")
+            self.logger.info(f"id({requesting_btn_id}) {current_movements} Movimentos correntes para area {ret.area_id} rua {ret.row_id}")
 
             if current_movements >= empty_positions:
                 continue
@@ -336,7 +359,7 @@ class Buffer:
 
             # verificamos se esta em um buffer id permitido.
             if free_pos_id_test!=None and free_area_id_test in buffers_allowed:
-                self.logger.info(f"Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
+                self.logger.info(f"id({requesting_btn_id}) Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
                 free_pos_id = free_pos_id_test
                 free_area_id = free_area_id_test
                 break
@@ -345,7 +368,7 @@ class Buffer:
         #self.logger.debug(f"{len(ret_all)} {free_area_id}")
 
         if len(ret_all)==0 or free_area_id==None:
-            self.logger.info("não existe ainda uma rua com este sku, verificamos uma rua livre para dedicar este sku")
+            self.logger.info(f"id({requesting_btn_id}) Tentando encontrar nova rua para sku {sku}...")
             for area_id, buffer in self.buffers.items():
                 for area_id in buffers_allowed:
                     for row in buffer['rows']:
@@ -365,10 +388,10 @@ class Buffer:
                             free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
                             if free_pos_id!=None:
                                 # nesse buffer e nessa rua foi encontrado posicao livre.
-                                self.logger.info(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
+                                self.logger.info(f"id({requesting_btn_id}) Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
                                 return free_pos_id, free_area_id 
 
-        self.logger.error("Nao existe rua livre para dedicarmos um novo sku.!")
+            self.logger.error(f"id({requesting_btn_id})  Nao existe rua livre para dedicarmos um o sku {sku}!")
 
         return free_pos_id, free_area_id 
     

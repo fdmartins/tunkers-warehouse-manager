@@ -24,7 +24,7 @@ class REENROLADOR:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA"]
 
         # descarrega pallete cheio no buffer. 
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=[5, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[5, ])
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_final_unload)
@@ -57,7 +57,7 @@ class REENROLADOR:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA"]
 
         # descarreta pallete cheio no buffer.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "PALETE INCOMPLETO", buffers_allowed=[4, ])
 
         btn_call.set_reserved_pos([
 

@@ -27,7 +27,7 @@ class SPIDER:
         if btn_call.sku in ["40479815"]:
              buffers_allowed = [8, ] # regiao L
 
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call.sku, buffers_allowed=buffers_allowed)
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=buffers_allowed)
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_final_unload)
@@ -59,7 +59,7 @@ class SPIDER:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA"]
 
         # descarreta pallete cheio no buffer.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos("PALETE INCOMPLETO", buffers_allowed=[4, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "PALETE INCOMPLETO", buffers_allowed=[4, ])
 
 
         if actual_steps==0:

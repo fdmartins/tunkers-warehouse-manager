@@ -76,6 +76,10 @@ def handle_request(path=""):
         response_data["LoadCount"] = position_states.get(request.json.get('symbolicPointId'))
 
     if path == "api/missioncreate":
+
+        #if request.json.get('ExternalId') in missions:
+
+
         missions.setdefault(request.json.get('ExternalId'), request.json)
 
         print(request.json)
