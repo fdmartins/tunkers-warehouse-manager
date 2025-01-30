@@ -7,6 +7,7 @@ import hashlib
 import datetime
 import logging
 from flask import Blueprint
+from .authorization import authorized 
 
 def register_products_routes():
     logger = logging.getLogger(__name__)
@@ -61,7 +62,8 @@ def register_products_routes():
 
 
     @app.route('/v1/products/new/complete', methods=['POST'])
-    def products_new_complete():
+    @authorized
+    def products_new_complete(logged_user):
         data = request.get_json()
 
         p = ProdutosCompleto.query.filter_by(sku=data['sku']).first()
@@ -73,13 +75,14 @@ def register_products_routes():
         db.session.add(new_p)
         db.session.commit()
 
-        History.info("Sistema", f"Operador criou novo ProdutosCompleto sku {new_p.sku} {new_p.nome} {new_p.tipo}")
+        History.info("Sistema", f"Operador  [{logged_user.username}] criou novo ProdutosCompleto sku {new_p.sku} {new_p.nome} {new_p.tipo}")
 
         return jsonify({'status':True, 'message': 'Produto Criado com Sucesso'}), 200
 
 
     @app.route('/v1/products/new/summarized', methods=['POST'])
-    def products_new_summarized():
+    @authorized
+    def products_new_summarized(logged_user):
         data = request.get_json()
 
         p = ProdutosResumido.query.filter_by(sku=data['sku']).first()
@@ -91,14 +94,15 @@ def register_products_routes():
         db.session.add(new_p)
         db.session.commit()
 
-        History.info("Sistema", f"Operador criou novo ProdutosResumido sku {new_p.sku} {new_p.bitola} {new_p.nome} {new_p.tipo}")
+        History.info("Sistema", f"Operador  [{logged_user.username}] criou novo ProdutosResumido sku {new_p.sku} {new_p.bitola} {new_p.nome} {new_p.tipo}")
 
         return jsonify({'status':True, 'message': 'Produto Criado com Sucesso'}), 200
 
 
 
     @app.route('/v1/products/delete/complete/<id>', methods=['POST'])
-    def products_remove_complete(id):
+    @authorized
+    def products_remove_complete(id, logged_user):
 
         p = ProdutosCompleto.query.filter_by(id=id).first()
 
@@ -109,12 +113,13 @@ def register_products_routes():
         db.session.delete(p)
         db.session.commit()
 
-        History.info("Sistema", f"Operador Removeu ProdutosCompleto sku {p.sku} {p.nome} {p.tipo}")
+        History.info("Sistema", f"Operador  [{logged_user.username}] Removeu ProdutosCompleto sku {p.sku} {p.nome} {p.tipo}")
 
         return jsonify({'status':True, 'message': 'Produto Removido com Sucesso'}), 200
 
     @app.route('/v1/products/delete/summarized/<id>', methods=['POST'])
-    def products_remove_summarized(id):
+    @authorized
+    def products_remove_summarized(id, logged_user):
 
         p = ProdutosResumido.query.filter_by(id=id).first()
 
@@ -124,6 +129,6 @@ def register_products_routes():
         db.session.delete(p)
         db.session.commit()
 
-        History.info("Sistema", f"Operador Removeu ProdutosResumido sku {p.sku} {p.nome} {p.tipo}")
+        History.info("Sistema", f"Operador [{logged_user.username}] Removeu ProdutosResumido sku {p.sku} {p.nome} {p.tipo}")
 
         return jsonify({'status':True, 'message': 'Produto Removido com Sucesso'}), 200
