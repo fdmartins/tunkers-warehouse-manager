@@ -27,6 +27,7 @@ class EMBALAGEM_K:
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
+            None
             ]) 
 
         if actual_steps==0:
@@ -57,6 +58,7 @@ class EMBALAGEM_K:
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "EXPEDICAO", buffers_allowed=[9, ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_unload)
             ]) 
 

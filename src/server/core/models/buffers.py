@@ -63,18 +63,17 @@ class Buffer:
         #self.logger.info(json.dumps(self.buffers, indent=4) )
 
 
-    def get_actual_missions_moving(self, requesting_btn_id):
+    def get_actual_missions_moving(self, requesting_btn_id, load_tag):
 
         self.logger.info(f"id({requesting_btn_id}) get_actual_missions_moving()")
         
 
-        navithor_missions = self.navithor_comm.get_mission_status() 
+        #navithor_missions = self.navithor_comm.get_mission_status() 
 
         actual_moving = {}
 
         # retorna os steps de missoes não finalizadas.
-        # DrivingToWait AGV drives to step wait location.
-        # AtWait AGV is at wait location.
+
         button_calls = ButtonCall.query.filter(
                                                 or_(
                                                     #ButtonCall.mission_status=='PENDENTE',
@@ -86,36 +85,26 @@ class Buffer:
         for b in button_calls:
             positions = b.get_reserved_pos()
 
+            reserved_pos = None
+
+            if load_tag:
+                # posicao de carga. sempre posicao 0 da lista.
+                reserved_pos = positions[0]
+            else:
+                # posicao de descarga. sempre posicao 1 da lista.
+                reserved_pos = positions[1]
+
             if b.id == requesting_btn_id:
+                # proprio chamado, ignora.
                 continue
 
     
-            # passamos pelas missoes cadastradas no navithor...
-            ignore = False
-            for nt_m in navithor_missions:
+            area_id, row_id = self.find_area_and_row_of_position(reserved_pos)
 
-                navithor_id = nt_m["Id"]
-                local_id = nt_m["ExternalId"]
-                navithor_main_state = nt_m["State"] #StateEnum (estado geral da missao)
-                agv = nt_m["AssignedMachineId"]
-                current_step_index = nt_m["CurrentStepIndex"]
-                steps = nt_m["Steps"]
+            self.logger.info(f"Tem Missao para posicao {reserved_pos} (area {area_id} rua {row_id}) - chamado id {b.id} ")
 
-
-
-                #if b.id==local_id:     
-                #    if navithor_main_state=="WaitingExtension" : 
-               #         ignore = True
-
-            if ignore==False:
-                for p in positions:
-                
-                    area_id, row_id = self.find_area_and_row_of_position(p)
-
-                    self.logger.info(f"Tem Missao para posicao {p} (area {area_id} rua {row_id}) - chamado id {b.id} - navithor_main_state {navithor_main_state}")
-
-                    actual_moving.setdefault((area_id, row_id), 0)
-                    actual_moving[area_id, row_id]+=1
+            actual_moving.setdefault((area_id, row_id), 0)
+            actual_moving[area_id, row_id]+=1
 
 
         
@@ -180,17 +169,17 @@ class Buffer:
         requesting_btn_id = btn.id
 
 
-        self.logger.info(f"id({requesting_btn_id}) get_occupied_pos_of_sku()")
+        self.logger.info(f"id({requesting_btn_id}) get_occupied_pos_of_sku({sku})")
 
         
         # retorna a primeira posicao acessivel pela rua.
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
-        actual_moving_row = self.get_actual_missions_moving(requesting_btn_id)
+        actual_moving_row = self.get_actual_missions_moving(requesting_btn_id, load_tag=True)
 
         all_ret = BufferSKURow.query.filter_by(sku=sku).all()
 
         if len(all_ret)==0:
-            self.logger.debug(f"id({requesting_btn_id}) Não encontrado nenhuma rua com SKU {sku}")
+            self.logger.debug(f"id({requesting_btn_id}) Não encontrado  rua com SKU {sku}")
             return None, None
         
         
@@ -242,6 +231,7 @@ class Buffer:
                 # varremos a rua da direita para esquerda até encontrar a primeira posicao OCUPADA.
                 for item in reversed(row):
                     if item['occupied']==True:
+                        self.logger.info(f"id({requesting_btn_id}) posicao ocupada escolhida: {item['pos']} area {ret.area_id}")
                         return item['pos'], ret.area_id
             
             
@@ -286,56 +276,37 @@ class Buffer:
 
         return ultima_livre
             
-    def get_free_pos_POR_PRIORIDADE(self, sku, buffers_allowed):
+    def get_free_pos(self, btn, sku, buffers_allowed):
         """
         Encontra uma posição livre para um SKU respeitando a prioridade sequencial dos buffers permitidos
         Args:
             sku: SKU do produto
-            buffers_allowed: Lista de buffers permitidos em ordem de prioridade
+            buffers_allowed: Lista de buffers permitidos por prioridade sequencial desta lista.
         Returns:
             tuple: (position_id, area_id) ou (None, None) se não encontrar posição
         """
         # Para cada buffer na ordem de prioridade
-        for area_id in buffers_allowed:
-            # Primeiro verificamos se o SKU já existe em alguma rua deste buffer
-            ret_buffer = BufferSKURow.query.filter_by(sku=sku, area_id=area_id).all()
+        for b_a in buffers_allowed:
+            free_pos_id, free_area_id  = self.get_free_pos_first(btn, sku, [b_a, ])
+            if free_pos_id!=None and free_area_id!=None:
+                return free_pos_id, free_area_id
             
-            for ret in ret_buffer:
-                free_pos_id, free_area_id = self.get_first_free_pos_in_row(ret.area_id, ret.row_id)
-                if free_pos_id is not None:
-                    self.logger.debug(f"Encontrado SKU {sku} no buffer {ret.area_id} rua {ret.row_id}")
-                    return free_pos_id, free_area_id
-
-            # Se não encontrou o SKU no buffer atual ou não há posição livre,
-            # procura uma rua livre neste buffer
-            if area_id in self.buffers:
-                buffer = self.buffers[area_id]
-                for row in buffer['rows']:
-                    ret = BufferSKURow.query.filter_by(area_id=area_id, row_id=row["id"]).one_or_none()
-                    if ret is None:
-                        free_pos_id, free_area_id = self.get_first_free_pos_in_row(area_id, row["id"])
-                        if free_pos_id is not None:
-                            self.logger.debug(f"Encontrado Rua Livre no buffer {free_area_id} posicao {free_pos_id}")
-                            return free_pos_id, free_area_id
-
-        # Se não encontrou nenhuma posição em nenhum buffer permitido
         return None, None
 
-    def get_free_pos(self, btn, sku, buffers_allowed):
+
+    def get_free_pos_first(self, btn, sku, buffers_allowed):
         """
         retorna a primeira posicao vazia da rua do buffer. 
+        Aqui a ordem é pela sequencia dos id dos buffers, sem respeitar a ordem da lista buffers_allowed
         """
 
         requesting_btn_id = btn.id
 
-        self.logger.info(f"id({requesting_btn_id}) get_free_pos()")
-
-        
+        self.logger.info(f"id({requesting_btn_id}) get_free_pos({sku})")
 
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
-        actual_moving_row = self.get_actual_missions_moving(requesting_btn_id)
+        actual_moving_row = self.get_actual_missions_moving(requesting_btn_id, load_tag=False)
 
-        # TESTAR get_free_pos_POR_PRIORIDADE (aguardando cliente enviar ordem de prioridade de buffer.)
 
         free_pos_id = None
         free_area_id = None 
@@ -376,7 +347,6 @@ class Buffer:
                         if ret==None:
                             row_positions = self.get_row_positions(area_id, row["id"])
                             if row_positions==None:
-                                #
                                 continue
 
                             current_movements = actual_moving_row.get((area_id, row["id"]), 0)

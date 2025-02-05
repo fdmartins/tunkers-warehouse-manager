@@ -47,8 +47,13 @@ class ButtonCall(db.Model):
 
     def get_reserved_pos(self):
         # Converte a string de volta para uma lista de inteiros
+        pos = []
         if self.reserved_pos:
-            return [int(item) for item in self.reserved_pos.split(',')]
+            for item in self.reserved_pos.split(','):
+                if item!=None:
+                    pos.append(int(item))
+                else:
+                    pos.append(item)
         return []
     
 

@@ -11,7 +11,7 @@ import traceback
 
 port = 8080
 DEBUG = False
-VERSION = "20250130.1"
+VERSION = "20250205.0"
 
 # Function to get the local IP address
 def get_local_ip():

@@ -23,13 +23,14 @@ class SPIDER:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA"]
         
         # descarreta pallete cheio no buffer.
-        buffers_allowed = [5, ] # 5=J1,  7=J2 
+        buffers_allowed = [5, 7 ] # 5=J1,  7=J2 
         if btn_call.sku in ["40479815"]:
              buffers_allowed = [8, ] # regiao L
 
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=buffers_allowed)
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_final_unload)
             ]) 
 

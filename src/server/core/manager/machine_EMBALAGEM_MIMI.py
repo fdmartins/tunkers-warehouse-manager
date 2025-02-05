@@ -26,6 +26,7 @@ class EMBALAGEM_MIMI:
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
+            None
             ]) 
         
         if actual_steps==0:

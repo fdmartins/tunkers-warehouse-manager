@@ -96,6 +96,7 @@ class RETROFI:
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_unload)
             ]) 
 
@@ -131,6 +132,7 @@ class RETROFI:
         tag_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL N/C", buffers_allowed=[2, ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_unload), 
             ]) 
 
@@ -229,6 +231,7 @@ class RETROFI:
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
+            None
             ]) 
 
         if actual_steps==0:

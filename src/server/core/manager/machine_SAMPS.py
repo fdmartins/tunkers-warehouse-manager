@@ -145,6 +145,7 @@ class SAMPS:
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
+            None
             ]) 
 
         if actual_steps==0:   
@@ -176,6 +177,7 @@ class SAMPS:
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "CARRETEL N/C", buffers_allowed=[3, ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_final_unload)
             ]) 
 
@@ -209,6 +211,7 @@ class SAMPS:
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[2, ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_final_unload)
             ]) 
         
@@ -241,6 +244,7 @@ class SAMPS:
 
         btn_call.set_reserved_pos([
             self.buffers.get_wait_pos_of(tag_load), 
+            None
             ]) 
 
         if actual_steps==0:   
@@ -269,9 +273,10 @@ class SAMPS:
         tag_load = self.machine_positions[btn_call.id_machine]["POS_SAIDA_CHEIO"]
 
         # descarreta pallete cheio no buffer.
-        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[5, ])
+        tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, btn_call.sku, buffers_allowed=[5, 7 ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_final_unload)
             ]) 
 
@@ -306,6 +311,7 @@ class SAMPS:
         tag_final_unload, area_id_sku = self.buffers.get_free_pos(btn_call, "PALETE INCOMPLETO", buffers_allowed=[4, ])
 
         btn_call.set_reserved_pos([
+            None,
             self.buffers.get_wait_pos_of(tag_final_unload)
             ]) 
 
