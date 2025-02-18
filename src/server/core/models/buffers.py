@@ -85,26 +85,30 @@ class Buffer:
         for b in button_calls:
             positions = b.get_reserved_pos()
 
+            self.logger.info(f"...call {b.id} = reserved_pos: {positions}")
+
             reserved_pos = None
 
-            if load_tag:
-                # posicao de carga. sempre posicao 0 da lista.
-                reserved_pos = positions[0]
-            else:
-                # posicao de descarga. sempre posicao 1 da lista.
-                reserved_pos = positions[1]
+            if len(positions)!=0:
 
-            if b.id == requesting_btn_id:
-                # proprio chamado, ignora.
-                continue
+                if load_tag:
+                    # posicao de carga. sempre posicao 0 da lista.
+                    reserved_pos = positions[0]
+                else:
+                    # posicao de descarga. sempre posicao 1 da lista.
+                    reserved_pos = positions[1]
 
-    
-            area_id, row_id = self.find_area_and_row_of_position(reserved_pos)
+                if b.id == requesting_btn_id:
+                    # proprio chamado, ignora.
+                    continue
 
-            self.logger.info(f"Tem Missao para posicao {reserved_pos} (area {area_id} rua {row_id}) - chamado id {b.id} ")
+        
+                area_id, row_id = self.find_area_and_row_of_position(reserved_pos)
 
-            actual_moving.setdefault((area_id, row_id), 0)
-            actual_moving[area_id, row_id]+=1
+                self.logger.info(f"Tem Missao para posicao {reserved_pos} (area {area_id} rua {row_id}) - chamado id {b.id} ")
+
+                actual_moving.setdefault((area_id, row_id), 0)
+                actual_moving[area_id, row_id]+=1
 
 
         

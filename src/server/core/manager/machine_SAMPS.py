@@ -94,7 +94,7 @@ class SAMPS:
 
         if actual_steps==0:
             if tag_load==None:
-                self.logger.error(f"Não existe carretel com skuCARRETEL N/C no buffer 3! ")
+                self.logger.error(f"Não existe carretel com sku CARRETEL N/C no buffer 3! ")
                 btn_call.info = f"Sem carretel sku CARRETEL N/C no buffer! "
                 btn_call.mission_status = "FINALIZADO_ERRO"
                 return None
@@ -184,7 +184,7 @@ class SAMPS:
 
         if actual_steps==0:        
             if tag_final_unload==None:
-                self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
+                self.logger.error(f"Não existe vagas para descarregar carretel  N/C!")
                 btn_call.info = f"Sem vagas no buffer carretel N/C! "
                 btn_call.mission_status = "FINALIZADO_ERRO"
                 return None

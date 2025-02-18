@@ -50,11 +50,11 @@ class ButtonCall(db.Model):
         pos = []
         if self.reserved_pos:
             for item in self.reserved_pos.split(','):
-                if item!=None:
+                if item!="None":
                     pos.append(int(item))
                 else:
                     pos.append(item)
-        return []
+        return pos
     
 
     def __str__(self):

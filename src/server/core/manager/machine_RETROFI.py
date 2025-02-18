@@ -186,8 +186,8 @@ class RETROFI:
                 return None
             
             if tag_final_unload==None:
-                self.logger.error(f"Não existe vagas para descarregar carretel cheio!")
-                btn_call.info = f"Sem espaco livre no buffer de carretel cheio"
+                self.logger.error(f"Não existe vagas buffer não conforme")
+                btn_call.info = f"Sem vaga no buffer NAO CONFORME"
                 btn_call.mission_status = "FINALIZADO_ERRO"
                 return None
 

@@ -88,8 +88,8 @@ class BARRICA:
 
         if actual_steps==0:
             if tag_final_unload==None:
-                self.logger.error(f"Não existe vagas para descarregar carretel vazio!")
-                btn_call.info = f"Sem vaga no buffer de carretel vazio"
+                self.logger.error(f"Não existe vagas buffer não conforme")
+                btn_call.info = f"Sem vaga no buffer NAO CONFORME"
                 btn_call.mission_status = "FINALIZADO_ERRO"
                 return None
 
