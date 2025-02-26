@@ -205,7 +205,7 @@ class Buffer:
                     best_row = ret.row_id
                     break
 
-        self.logger.info(f"id({requesting_btn_id}) Melhor rua sem movimento {best_row}")
+        self.logger.info(f"id({requesting_btn_id}) Melhor rua sem movimento {best_row} de pos CHEIA")
 
         # selecionamos de fato qual rua retornaremos...
         for ret in all_ret:
@@ -306,7 +306,7 @@ class Buffer:
 
         requesting_btn_id = btn.id
 
-        self.logger.info(f"id({requesting_btn_id}) get_free_pos({sku})")
+        self.logger.info(f"id({requesting_btn_id}) get_free_pos({sku})  buffers={buffers_allowed}")
 
         # actual_moving_row informa para quais area_id e row_id tem serviço sendo executado e a quantidade. ex: { (1,2):2 }  = area_id 1 rua 2 com 2 movimentos.
         actual_moving_row = self.get_actual_missions_moving(requesting_btn_id, load_tag=False)
@@ -317,12 +317,40 @@ class Buffer:
 
         ret_all = BufferSKURow.query.filter_by(sku=sku).all()
 
+
+        # fazemos uma pré varredura, para saber quais ruas tem agv se movimentando. Selecionamos aquela livre.
+        # isso só é util quando mais de uma rua com mesmo sku e mesmo buffer, caso do CARRETEL VAZIO.
+        best_row = None
         for ret in ret_all:
+            if ret.area_id in buffers_allowed:
+                current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
+                row = self.get_row_positions(ret.area_id, ret.row_id)
+                empty_positions = sum(1 for item in row if not item['occupied'])
+            
+                if current_movements >= empty_positions:
+                    # nunca deve ser MAIOR, mas consideramos >=.
+                    # ja tem agvs se movimentando para esta rua e que comprometerá as posicoes.
+                    continue
+
+                if current_movements==0:
+                    best_row = ret.row_id
+                    break
+
+        self.logger.info(f"id({requesting_btn_id}) Melhor rua sem movimento {best_row} de pos VAZIA")
+
+        for ret in ret_all:
+
+            if best_row!=None:
+                # existe uma possibilidade.
+                if best_row!=ret.row_id:
+                    # nao é essa, continuamos...
+                    continue
+
             row = self.get_row_positions(ret.area_id, ret.row_id)
             current_movements = actual_moving_row.get((ret.area_id, ret.row_id), 0)
             empty_positions = sum(1 for item in row if not item['occupied'])
 
-            self.logger.info(actual_moving_row)
+            #self.logger.info(actual_moving_row)
             self.logger.info(f"id({requesting_btn_id}) {empty_positions} posicoes livres para area {ret.area_id} rua {ret.row_id}")
             self.logger.info(f"id({requesting_btn_id}) {current_movements} Movimentos correntes para area {ret.area_id} rua {ret.row_id}")
 
